@@ -60,11 +60,14 @@ export async function fetchCidadesPorEstado(uf: string): Promise<Cidade[]> {
 
     if (response.ok) {
       const data = await response.json();
-      return data.map((cidade: { id: number; nome: string; estado_id: number }) => ({
-        id: cidade.id,
-        nome: cidade.nome,
-        estadoId: cidade.estado_id,
-      }));
+      if (data.length > 0) {
+        return data.map((cidade: { id: number; nome: string; estado_id: number }) => ({
+          id: cidade.id,
+          nome: cidade.nome,
+          estadoId: cidade.estado_id,
+        }));
+      }
+      // Se backend retornar vazio, continua para fallback IBGE
     }
 
     // Fallback to IBGE API if backend not available
