@@ -137,7 +137,8 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        set(initialState);
+        // Reset state but keep _hasHydrated true to avoid blocking UI
+        set({ ...initialState, _hasHydrated: true });
         // Clear any stored tokens
         if (typeof window !== "undefined") {
           localStorage.removeItem("auth-storage");

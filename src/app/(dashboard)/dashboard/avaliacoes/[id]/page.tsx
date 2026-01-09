@@ -537,7 +537,7 @@ export default function AvaliacaoDetailPage() {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className={cn("text-2xl font-bold", getScoreColor(evaluation.score))}>
-                    {evaluation.score !== null ? `${evaluation.score}%` : "-"}
+                    {evaluation.score !== null ? `${Math.round(evaluation.score)}%` : "-"}
                   </span>
                 </div>
               </div>
@@ -622,7 +622,7 @@ export default function AvaliacaoDetailPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-400">Progresso da Nota</span>
                       <span className={getScoreColor(evaluation.score)}>
-                        {evaluation.score || 0}% / {evaluation.max_score}%
+                        {Math.round(evaluation.score || 0)}% / {evaluation.max_score}%
                       </span>
                     </div>
                     <Progress
@@ -838,7 +838,7 @@ export default function AvaliacaoDetailPage() {
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-4">
                       <div className="bg-slate-800 rounded-lg p-3 text-center">
                         <p className={cn("text-xl font-bold", getScoreColor(attempt.score))}>
-                          {attempt.score !== null ? `${attempt.score}%` : "-"}
+                          {attempt.score !== null ? `${Math.round(attempt.score)}%` : "-"}
                         </p>
                         <p className="text-xs text-slate-400">Nota</p>
                       </div>

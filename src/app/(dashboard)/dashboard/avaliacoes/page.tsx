@@ -637,7 +637,7 @@ export default function AvaliacoesPage() {
                                   getScoreColor(evaluation.score, evaluation.passed)
                                 )}
                               >
-                                {evaluation.score}%
+                                {Math.round(evaluation.score)}%
                               </span>
                               {evaluation.passed !== null && (
                                 <Badge
@@ -785,7 +785,7 @@ export default function AvaliacoesPage() {
                 <p className="text-slate-400 text-sm">{selectedEvaluation.candidate_email}</p>
                 {selectedEvaluation.score !== null && (
                   <p className="text-slate-400 text-sm mt-2">
-                    Nota atual: <span className="text-white">{selectedEvaluation.score}%</span>
+                    Nota atual: <span className="text-white">{Math.round(selectedEvaluation.score)}%</span>
                   </p>
                 )}
               </div>

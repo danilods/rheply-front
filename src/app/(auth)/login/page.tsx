@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,7 +42,6 @@ function LoginLoading() {
 }
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
   const { login, isLoading, error, clearError } = useAuthStore();
@@ -69,10 +68,10 @@ function LoginForm() {
     clearError();
     try {
       await login(data.email, data.password, data.rememberMe);
-      // Small delay to ensure cookie is set before navigation
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      router.push(redirectTo);
-      router.refresh();
+      // Wait for cookie to be properly set before navigation
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      // Use window.location for full page reload to ensure middleware reads the cookie
+      window.location.href = redirectTo;
     } catch {
       // Error is handled by the store
     }
