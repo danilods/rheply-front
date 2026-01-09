@@ -39,7 +39,7 @@ export default function TypingTestPage() {
   const [results, setResults] = useState({ wpm: 0, accuracy: 0, chars: 0, time: 0 })
   const [submitting, setSubmitting] = useState(false)
   const [processStatus, setProcessStatus] = useState<ProcessStatus | null>(null)
-  const [alreadySubmitted, setAlreadySubmitted] = useState(false)
+  const [alreadySubmitted, _setAlreadySubmitted] = useState(false)
 
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const isDemo = selectionProcessId === "demo" || selectionProcessId === "demo-id"
