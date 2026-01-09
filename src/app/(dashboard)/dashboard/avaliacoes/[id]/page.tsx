@@ -170,7 +170,7 @@ export default function AvaliacaoDetailPage() {
   const router = useRouter();
   const params = useParams();
   const evaluationId = params.id as string;
-  const { token, _hasHydrated } = useAuthStore();
+  const { token, _hasHydrated, logout } = useAuthStore();
 
   // State
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
@@ -207,12 +207,10 @@ export default function AvaliacaoDetailPage() {
           console.log("[Avaliacao Detail] Response status:", response.status);
 
           if (response.status === 401) {
-            // Token expired or invalid - redirect to login
-            console.error("[Avaliacao Detail] Token invalid/expired, redirecting to login");
-            setError("Sessao expirada. Redirecionando para login...");
-            setTimeout(() => {
-              window.location.href = "/login";
-            }, 2000);
+            // Token expired or invalid - logout and redirect to login
+            console.error("[Avaliacao Detail] Token invalid/expired, logging out");
+            logout();
+            router.push("/login");
             return;
           }
 

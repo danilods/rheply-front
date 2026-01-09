@@ -133,7 +133,7 @@ const EVALUATION_TYPE_LABELS: Record<EvaluationType, string> = {
 
 export default function AvaliacoesPage() {
   const router = useRouter();
-  const { token, _hasHydrated } = useAuthStore();
+  const { token, _hasHydrated, logout } = useAuthStore();
 
   // State
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
@@ -205,13 +205,10 @@ export default function AvaliacoesPage() {
           setLastRefresh(new Date());
           return;
         } else if (response.status === 401) {
-          // Token expired or invalid - redirect to login
-          console.error("[Avaliacoes List] Token invalid/expired, redirecting to login");
-          setError("Sessao expirada. Redirecionando para login...");
-          // Clear auth and redirect
-          setTimeout(() => {
-            window.location.href = "/login";
-          }, 2000);
+          // Token expired or invalid - logout and redirect to login
+          console.error("[Avaliacoes List] Token invalid/expired, logging out");
+          logout();
+          router.push("/login");
           return;
         } else {
           const errorData = await response.json().catch(() => ({ detail: "Erro desconhecido" }));
