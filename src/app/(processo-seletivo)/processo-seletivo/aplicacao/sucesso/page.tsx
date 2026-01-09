@@ -1,8 +1,7 @@
 "use client"
 
-import { CheckCircle, Zap, ArrowLeft } from "lucide-react"
+import { CheckCircle, Zap } from "lucide-react"
 import { Logo } from "@/components/brand/logo"
-import Link from "next/link"
 
 // Configuração da empresa - pode ser alterado para cada cliente
 const EMPRESA_CONFIG = {
@@ -63,18 +62,12 @@ export default function AplicacaoSuccessPage() {
             </ul>
           </div>
 
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 text-slate-300 font-medium rounded-xl hover:bg-slate-700 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar ao Início
-          </Link>
         </div>
 
         {/* Info */}
         <div className="mt-8 text-center text-slate-500 text-sm">
           <p>Em caso de dúvidas, entre em contato com o RH.</p>
+          <p className="mt-2 text-xs text-slate-600">Você pode fechar esta página.</p>
         </div>
       </main>
     </div>
