@@ -469,15 +469,16 @@ export default function AplicacaoRegistrationPage() {
                       value={cidadeSearch}
                       onChange={handleCidadeInputChange}
                       onFocus={() => formData.estado && setShowCidadeDropdown(true)}
+                      onClick={() => formData.estado && setShowCidadeDropdown(true)}
                       disabled={!formData.estado || loadingCidades}
                       placeholder={
                         loadingCidades
-                          ? "Carregando..."
+                          ? "Carregando cidades..."
                           : !formData.estado
                           ? "Selecione o estado primeiro"
-                          : "Digite para buscar..."
+                          : "Clique ou digite para buscar cidade..."
                       }
-                      className="w-full pl-11 pr-10 py-3 bg-slate-950/50 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      className="w-full pl-11 pr-10 py-3 bg-slate-950/50 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
                     />
                     {loadingCidades ? (
                       <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-teal-500 animate-spin" />
@@ -489,38 +490,46 @@ export default function AplicacaoRegistrationPage() {
                       >
                         <X className="h-5 w-5" />
                       </button>
+                    ) : formData.estado ? (
+                      <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 transition-transform ${showCidadeDropdown ? 'rotate-180' : ''}`} />
                     ) : null}
 
                     {/* Dropdown de cidades */}
                     {showCidadeDropdown && formData.estado && !loadingCidades && (
                       <div
                         ref={cidadeDropdownRef}
-                        className="absolute z-50 w-full mt-2 max-h-60 overflow-auto bg-slate-900 border border-slate-700 rounded-xl shadow-xl"
+                        className="absolute z-50 w-full mt-2 max-h-72 overflow-y-auto overscroll-contain bg-slate-900 border border-slate-700 rounded-xl shadow-xl scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
+                        style={{ WebkitOverflowScrolling: 'touch' }}
                       >
                         {cidadesFiltradas.length === 0 ? (
                           <div className="px-4 py-3 text-slate-400 text-sm">
                             Nenhuma cidade encontrada
                           </div>
                         ) : (
-                          cidadesFiltradas.slice(0, 50).map((cidade) => (
-                            <button
-                              key={cidade.id}
-                              type="button"
-                              onClick={() => handleCidadeSelect(cidade.nome)}
-                              className={`w-full px-4 py-3 text-left hover:bg-teal-500/10 transition-colors ${
-                                formData.cidade === cidade.nome
-                                  ? "bg-teal-500/10 text-teal-400"
-                                  : "text-slate-300"
-                              }`}
-                            >
-                              {cidade.nome}
-                            </button>
-                          ))
-                        )}
-                        {cidadesFiltradas.length > 50 && (
-                          <div className="px-4 py-2 text-xs text-slate-500 border-t border-slate-800">
-                            Digite mais para refinar a busca...
-                          </div>
+                          <>
+                            <div className="sticky top-0 px-4 py-2 text-xs text-slate-500 bg-slate-900 border-b border-slate-800">
+                              {cidadesFiltradas.length} cidade{cidadesFiltradas.length !== 1 ? 's' : ''} encontrada{cidadesFiltradas.length !== 1 ? 's' : ''}
+                            </div>
+                            {cidadesFiltradas.slice(0, 100).map((cidade) => (
+                              <button
+                                key={cidade.id}
+                                type="button"
+                                onClick={() => handleCidadeSelect(cidade.nome)}
+                                className={`w-full px-4 py-3 text-left hover:bg-teal-500/10 transition-colors border-b border-slate-800/50 last:border-b-0 ${
+                                  formData.cidade === cidade.nome
+                                    ? "bg-teal-500/10 text-teal-400"
+                                    : "text-slate-300"
+                                }`}
+                              >
+                                {cidade.nome}
+                              </button>
+                            ))}
+                            {cidadesFiltradas.length > 100 && (
+                              <div className="px-4 py-2 text-xs text-slate-500 border-t border-slate-800 bg-slate-900 sticky bottom-0">
+                                Mostrando 100 de {cidadesFiltradas.length}. Digite para refinar...
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
