@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Search, FileDown, Eye, CheckCircle, XCircle, Clock } from "lucide-react"
+import { useAuthStore } from "@/store/auth"
 
 interface SelectionProcess {
   id: string
@@ -51,17 +52,32 @@ export default function SelecaoPage() {
   const [selectedProcess, setSelectedProcess] = useState<SelectionProcess | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
+  // Get token from auth store
+  const { token, _hasHydrated } = useAuthStore()
+
   // Pagination
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(0)
   const pageSize = 50
 
-  useEffect(() => {
-    loadProcesses()
-  }, [page, statusFilter, searchTerm])
+  // Helper to get auth headers
+  const getAuthHeaders = useCallback(() => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    }
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`
+    }
+    return headers
+  }, [token])
 
-  const loadProcesses = async () => {
+  const loadProcesses = useCallback(async () => {
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
@@ -80,14 +96,12 @@ export default function SelecaoPage() {
       }
 
       const response = await fetch(`/api/v1/selection/processes?${params.toString()}`, {
-        headers: {
-          // Add authentication header here
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
       })
 
       if (!response.ok) {
-        throw new Error("Erro ao carregar processos seletivos")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || "Erro ao carregar processos seletivos")
       }
 
       const data = await response.json()
@@ -99,15 +113,19 @@ export default function SelecaoPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, statusFilter, searchTerm, token, getAuthHeaders])
+
+  useEffect(() => {
+    if (_hasHydrated && token) {
+      loadProcesses()
+    }
+  }, [_hasHydrated, token, loadProcesses])
 
   const updateProcessStatus = async (processId: string, newStatus: string, notes?: string) => {
     try {
       const response = await fetch(`/api/v1/selection/processes/${processId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           status: newStatus,
           notes: notes,
@@ -115,7 +133,8 @@ export default function SelecaoPage() {
       })
 
       if (!response.ok) {
-        throw new Error("Erro ao atualizar processo")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || "Erro ao atualizar processo")
       }
 
       loadProcesses()
@@ -136,13 +155,12 @@ export default function SelecaoPage() {
       }
 
       const response = await fetch(`/api/v1/selection/export/excel?${params.toString()}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
       })
 
       if (!response.ok) {
-        throw new Error("Erro ao exportar dados")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || "Erro ao exportar dados")
       }
 
       // Download file
@@ -180,6 +198,12 @@ export default function SelecaoPage() {
   const getAvailabilityText = (schedule: any) => {
     if (!schedule) return "Não informado"
 
+    // Handle new format with shifts array
+    if (schedule.shifts && Array.isArray(schedule.shifts)) {
+      return schedule.shifts.length > 0 ? schedule.shifts.join(", ") : "Não informado"
+    }
+
+    // Handle old format with boolean fields
     const shifts = []
     if (schedule.morning) shifts.push("Manhã")
     if (schedule.afternoon) shifts.push("Tarde")
@@ -188,6 +212,15 @@ export default function SelecaoPage() {
     if (schedule.weekends) shifts.push("Finais de semana")
 
     return shifts.length > 0 ? shifts.join(", ") : "Não informado"
+  }
+
+  // Show loading while hydrating
+  if (!_hasHydrated) {
+    return (
+      <div className="container mx-auto py-6">
+        <p className="text-center py-8">Carregando...</p>
+      </div>
+    )
   }
 
   return (
@@ -199,7 +232,7 @@ export default function SelecaoPage() {
             Gerencie candidatos e acompanhe os processos de seleção
           </p>
         </div>
-        <Button onClick={exportToExcel}>
+        <Button onClick={exportToExcel} disabled={loading}>
           <FileDown className="mr-2 h-4 w-4" />
           Exportar Excel
         </Button>
@@ -405,7 +438,36 @@ export default function SelecaoPage() {
                   {selectedProcess.personal_data?.cpf && (
                     <div>
                       <span className="text-muted-foreground">CPF:</span>
-                      <p className="font-medium">{selectedProcess.personal_data.cpf}</p>
+                      <p className="font-medium">
+                        {selectedProcess.personal_data.cpf_formatted || selectedProcess.personal_data.cpf}
+                      </p>
+                    </div>
+                  )}
+                  {selectedProcess.personal_data?.cidade && (
+                    <div>
+                      <span className="text-muted-foreground">Cidade:</span>
+                      <p className="font-medium">
+                        {selectedProcess.personal_data.cidade}
+                        {selectedProcess.personal_data.estado && ` - ${selectedProcess.personal_data.estado}`}
+                      </p>
+                    </div>
+                  )}
+                  {selectedProcess.personal_data?.bairro && (
+                    <div>
+                      <span className="text-muted-foreground">Bairro:</span>
+                      <p className="font-medium">{selectedProcess.personal_data.bairro}</p>
+                    </div>
+                  )}
+                  {selectedProcess.personal_data?.vaga && (
+                    <div>
+                      <span className="text-muted-foreground">Vaga:</span>
+                      <p className="font-medium">{selectedProcess.personal_data.vaga}</p>
+                    </div>
+                  )}
+                  {selectedProcess.personal_data?.empresa && (
+                    <div>
+                      <span className="text-muted-foreground">Empresa:</span>
+                      <p className="font-medium">{selectedProcess.personal_data.empresa}</p>
                     </div>
                   )}
                 </div>
@@ -415,6 +477,9 @@ export default function SelecaoPage() {
               <div className="space-y-3">
                 <h3 className="font-semibold">Disponibilidade de Horário</h3>
                 <p className="text-sm">{getAvailabilityText(selectedProcess.availability_schedule)}</p>
+                {selectedProcess.availability_schedule?.uses_company_transport && (
+                  <p className="text-sm text-muted-foreground">Utiliza transporte da empresa</p>
+                )}
               </div>
 
               {/* Family & Previous Employment */}
@@ -422,7 +487,7 @@ export default function SelecaoPage() {
                 <div className="space-y-2">
                   <h3 className="font-semibold">Familiar na Empresa</h3>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProcess.personal_data?.family_details || "Não informado"}
+                    {selectedProcess.personal_data?.family_details || selectedProcess.notes || "Não informado"}
                   </p>
                 </div>
               )}
