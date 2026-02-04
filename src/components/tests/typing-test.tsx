@@ -51,6 +51,7 @@ interface TypingTestProps {
     durationSeconds: number;
     pasteAttempts: number;
     focusLostCount: number;
+    errorAttempts: number;
   }) => void;
   onCancel?: () => void;
 }
@@ -68,17 +69,19 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
   const [pasteAttempts, setPasteAttempts] = useState(0);
   const [focusLostCount, setFocusLostCount] = useState(0);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showErrorFeedback, setShowErrorFeedback] = useState(false);
+  const [errorAttempts, setErrorAttempts] = useState(0);
 
   // Refs
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Store
-  const { calculateWPM, calculateAccuracy } = useTypingTestStore();
+  const { calculateWPM } = useTypingTestStore();
 
   // Métricas calculadas
   const wpm = calculateWPM(typedText, elapsedSeconds);
-  const accuracy = calculateAccuracy(testData.textSample, typedText);
+  // accuracy é sempre 100% com a lógica de bloqueio de erros (não precisa calcular)
   const progress = Math.min(
     100,
     (typedText.length / testData.textSample.length) * 100
@@ -151,11 +154,39 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
   }, []);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    const original = testData.textSample;
+
     if (!isRunning) {
       handleStart();
     }
-    setTypedText(e.target.value);
-  }, [isRunning, handleStart]);
+
+    // Permite backspace (texto menor ou igual)
+    if (newText.length <= typedText.length) {
+      setTypedText(newText);
+      setShowErrorFeedback(false);
+      return;
+    }
+
+    // Verifica se o novo caractere digitado está correto
+    const lastCharIndex = newText.length - 1;
+    const expectedChar = original[lastCharIndex];
+    const typedChar = newText[lastCharIndex];
+
+    if (typedChar === expectedChar) {
+      // Caractere correto - permite continuar
+      setTypedText(newText);
+      setShowErrorFeedback(false);
+    } else {
+      // Caractere incorreto - bloqueia e mostra feedback
+      setShowErrorFeedback(true);
+      setErrorAttempts((prev) => prev + 1);
+      // Não atualiza typedText - mantém o texto anterior
+
+      // Remove feedback visual após 300ms
+      setTimeout(() => setShowErrorFeedback(false), 300);
+    }
+  }, [isRunning, handleStart, typedText, testData.textSample]);
 
   const handleFinish = useCallback(() => {
     setIsRunning(false);
@@ -168,8 +199,9 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
       durationSeconds: elapsedSeconds,
       pasteAttempts,
       focusLostCount,
+      errorAttempts,
     });
-  }, [typedText, elapsedSeconds, pasteAttempts, focusLostCount, onComplete]);
+  }, [typedText, elapsedSeconds, pasteAttempts, focusLostCount, errorAttempts, onComplete]);
 
   const handleCancel = useCallback(() => {
     setShowConfirmDialog(true);
@@ -190,6 +222,8 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
     setElapsedSeconds(0);
     setPasteAttempts(0);
     setFocusLostCount(0);
+    setShowErrorFeedback(false);
+    setErrorAttempts(0);
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
@@ -205,7 +239,7 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Renderiza texto com destaque de erros
+  // Renderiza texto com destaque - sem erros pois são bloqueados
   const renderHighlightedText = () => {
     const original = testData.textSample;
     const typed = typedText;
@@ -216,13 +250,13 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
           let className = "text-gray-400"; // Não digitado
 
           if (index < typed.length) {
-            if (typed[index] === char) {
-              className = "text-green-600 bg-green-50"; // Correto
-            } else {
-              className = "text-red-600 bg-red-100"; // Erro
-            }
+            // Com a nova lógica, todos os caracteres digitados estão corretos
+            className = "text-green-600 bg-green-50"; // Correto
           } else if (index === typed.length) {
-            className = "bg-blue-200 text-gray-800"; // Cursor
+            // Cursor - mostra vermelho se erro foi tentado
+            className = showErrorFeedback
+              ? "bg-red-300 text-gray-800 animate-pulse" // Erro tentado
+              : "bg-blue-200 text-gray-800"; // Normal
           }
 
           return (
@@ -271,7 +305,7 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
           </CardContent>
         </Card>
 
-        {/* Precisão */}
+        {/* Precisão - sempre 100% com nova lógica */}
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 bg-purple-100 rounded-lg">
@@ -279,36 +313,34 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Precisão</p>
-              <p className="text-2xl font-bold">{accuracy.toFixed(1)}%</p>
+              <p className="text-2xl font-bold">100%</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Alertas */}
+        {/* Erros Tentados */}
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div
               className={cn(
                 "p-2 rounded-lg",
-                pasteAttempts > 0 || focusLostCount > 3
-                  ? "bg-red-100"
+                errorAttempts > 0 || pasteAttempts > 0
+                  ? "bg-orange-100"
                   : "bg-gray-100"
               )}
             >
               <AlertTriangle
                 className={cn(
                   "h-5 w-5",
-                  pasteAttempts > 0 || focusLostCount > 3
-                    ? "text-red-600"
+                  errorAttempts > 0 || pasteAttempts > 0
+                    ? "text-orange-600"
                     : "text-gray-400"
                 )}
               />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Alertas</p>
-              <p className="text-2xl font-bold">
-                {pasteAttempts + Math.floor(focusLostCount / 3)}
-              </p>
+              <p className="text-sm text-muted-foreground">Erros</p>
+              <p className="text-2xl font-bold">{errorAttempts}</p>
             </div>
           </CardContent>
         </Card>
@@ -341,7 +373,12 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
 
           {/* Área de digitação */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Digite o texto acima:</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Digite o texto acima:</label>
+              <span className="text-xs text-muted-foreground">
+                Corrija erros antes de continuar (padrão de mercado)
+              </span>
+            </div>
             <Textarea
               ref={textareaRef}
               value={typedText}
@@ -352,7 +389,10 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
                   ? "Continue digitando..."
                   : "Clique aqui e comece a digitar para iniciar o teste"
               }
-              className="min-h-[150px] font-mono text-lg resize-none"
+              className={cn(
+                "min-h-[150px] font-mono text-lg resize-none transition-all",
+                showErrorFeedback && "border-red-500 ring-2 ring-red-200"
+              )}
               disabled={!isRunning && elapsedSeconds > 0}
               autoComplete="off"
               autoCorrect="off"
@@ -397,8 +437,8 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
         )}
       </div>
 
-      {/* Aviso de fraude */}
-      {(pasteAttempts > 0 || focusLostCount > 3) && (
+      {/* Aviso de fraude ou muitos erros */}
+      {(pasteAttempts > 0 || focusLostCount > 3 || errorAttempts > 10) && (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
           <div>
@@ -412,6 +452,11 @@ export function TypingTest({ testData, onComplete, onCancel }: TypingTestProps) 
               {focusLostCount > 3 && (
                 <span>
                   A janela perdeu foco {focusLostCount} vezes.{" "}
+                </span>
+              )}
+              {errorAttempts > 10 && (
+                <span>
+                  Você cometeu {errorAttempts} erros de digitação.{" "}
                 </span>
               )}
               Isso pode afetar sua avaliação.
