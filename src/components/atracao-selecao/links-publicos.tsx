@@ -22,7 +22,7 @@ export function LinksPublicos() {
   const [links, setLinks] = useState<LinkPublico[]>([]);
   const [descricao, setDescricao] = useState("");
   const [dias, setDias] = useState(7);
-  const [recemCriado, setRecemCriado] = useState<{ url: string; descricao: string } | null>(null);
+  const [recemCriado, setRecemCriado] = useState<{ url: string; codigo: string; descricao: string } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
 
@@ -45,7 +45,8 @@ export function LinksPublicos() {
     try {
       const criado = await atracaoSelecaoApi.criarLink(descricao.trim(), dias);
       setRecemCriado({
-        url: `${window.location.origin}/painel/${criado.token}`,
+        url: `${window.location.origin}/painel`,
+        codigo: criado.token,
         descricao: criado.descricao,
       });
       setDescricao("");
@@ -117,22 +118,37 @@ export function LinksPublicos() {
           }}
         >
           <p className="rs-rotulo" style={{ margin: 0 }}>
-            Copie agora — este endereço não aparece de novo
+            Copie o código agora — ele não aparece de novo
           </p>
           <p
-            className="rs-num"
-            style={{ margin: "8px 0 0", wordBreak: "break-all", fontSize: 14, color: "var(--rs-tinta)" }}
+            className="rs-leitura"
+            style={{ margin: "10px 0 0", fontSize: 34, letterSpacing: "0.2em" }}
           >
+            {recemCriado.codigo}
+          </p>
+          <p className="rs-estado__prazo" style={{ margin: "10px 0 0" }}>
+            Mande o endereço e o código por caminhos diferentes: o endereço sozinho não abre
+            nada, e é isso que protege quem está na lista.
+          </p>
+          <p className="rs-num" style={{ margin: "8px 0 0", fontSize: 14, color: "var(--rs-tinta)" }}>
             {recemCriado.url}
           </p>
-          <button
-            type="button"
-            className="rs-botao"
-            style={{ marginTop: 10 }}
-            onClick={() => void navigator.clipboard?.writeText(recemCriado.url)}
-          >
-            Copiar
-          </button>
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <button
+              type="button"
+              className="rs-botao rs-botao--forte"
+              onClick={() => void navigator.clipboard?.writeText(recemCriado.codigo)}
+            >
+              Copiar código
+            </button>
+            <button
+              type="button"
+              className="rs-botao"
+              onClick={() => void navigator.clipboard?.writeText(recemCriado.url)}
+            >
+              Copiar endereço
+            </button>
+          </div>
         </div>
       ) : null}
 

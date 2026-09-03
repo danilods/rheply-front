@@ -94,23 +94,35 @@ export function Portaria({ aoEntrar }: { aoEntrar: (token: string) => void }) {
           Atração e Seleção
         </h1>
         <p className="rs-sub">
-          Cole o código de acesso que você recebeu. Ele vale por tempo limitado e pode ser
-          revogado por quem enviou.
+          Digite o código de seis dígitos que você recebeu. Ele vale por tempo limitado
+          e pode ser revogado por quem enviou.
         </p>
 
         <label className="rs-campo" style={{ width: "100%" }}>
           <span className="rs-rotulo">Código de acesso</span>
           <input
-            className="rs-busca"
-            style={{ width: "100%", maxWidth: "none", minWidth: 0, marginTop: 4 }}
+            className="rs-busca rs-num"
+            style={{
+              width: "100%",
+              maxWidth: "none",
+              minWidth: 0,
+              marginTop: 4,
+              fontSize: 22,
+              letterSpacing: "0.28em",
+              textAlign: "center",
+            }}
             value={codigo}
             autoFocus
-            autoComplete="off"
+            autoComplete="one-time-code"
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="000000"
             spellCheck={false}
             aria-invalid={erro ? true : undefined}
             aria-describedby={erro ? "rs-portaria-erro" : undefined}
             onChange={(e) => {
-              setCodigo(e.target.value);
+              // Colar "código: 123 456" é comum. O campo aceita e limpa.
+              setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6));
               if (erro) setErro(null);
             }}
           />
@@ -132,7 +144,7 @@ export function Portaria({ aoEntrar }: { aoEntrar: (token: string) => void }) {
           className="rs-botao rs-botao--forte"
           style={{ marginTop: 16 }}
           onClick={() => void entrar()}
-          disabled={!codigo.trim() || verificando}
+          disabled={codigo.length < 6 || verificando}
         >
           {verificando ? "Verificando…" : "Abrir painel"}
         </button>
