@@ -723,7 +723,11 @@ export function Unifilar({ nos }: { nos: NoUnifilar[] }) {
        em volta dele. */
     const espMax = Math.round(altura * 0.22);
     const espessura = (v: number) => Math.max(2, Math.round((v / maior) * espMax));
-    const piorPerda = Math.max(...nos.slice(0, -1).map((n) => n.perda));
+    // Sem perda nenhuma não há trecho crítico. Sem esta guarda, um funil vazio
+    // desenhava a linha inteira em vermelho de alarme, porque zero empata com
+    // zero e todo trecho virava "o pior".
+    const piorPerda = Math.max(...nos.slice(0, -1).map((n) => n.perda), 0);
+    const temPerda = piorPerda > 0;
 
     return (
       <svg viewBox={`0 0 ${largura} ${altura}`} width="100%" height={altura} role="img">
@@ -731,7 +735,7 @@ export function Unifilar({ nos }: { nos: NoUnifilar[] }) {
           const x1 = esq + vao * i;
           const x2 = esq + vao * (i + 1);
           const e = espessura(nos[i + 1].v);
-          const critico = n.perda === piorPerda;
+          const critico = temPerda && n.perda === piorPerda;
           const conversao = n.v ? nos[i + 1].v / n.v : 0;
           return (
             <g key={`t${i}`}>
