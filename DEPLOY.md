@@ -132,6 +132,13 @@ por ser estrutural.
 
 ### Corrigido
 
+- **Token do painel público na URL.** O endereço era `/painel/<token>`, o que
+  deixava a credencial na barra de endereço, no histórico de quem recebeu e no
+  log de borda de quem serve a página. Agora o endereço é só `/painel` e o
+  código é colado numa portaria, indo no cabeçalho `X-Painel-Token`. O código
+  fica em `sessionStorage`, que morre com a aba. Links da primeira leva
+  continuam funcionando por um atalho que guarda o código e limpa a URL na
+  hora — **remova `src/app/painel/[token]/` quando eles expirarem**.
 - **Cookie de sessão sem `Secure`.** Agora leva `Secure` em qualquer origem que
   não seja `localhost`. Sem ele, o cookie viajava em claro no primeiro salto
   HTTP, antes de qualquer redirecionamento para HTTPS.

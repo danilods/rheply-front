@@ -22,8 +22,8 @@ export default function PaginaSinoptico() {
   // A mesma tela serve /atracao-selecao e /painel/<token>. O prefixo sai do
   // caminho para que os links irmãos apontem para dentro do próprio contexto.
   const caminho = usePathname() ?? "";
-  const publico = caminho.startsWith("/painel/");
-  const base = publico ? caminho.split("/").slice(0, 3).join("/") : "/atracao-selecao";
+  const publico = caminho === "/painel" || caminho.startsWith("/painel/");
+  const base = publico ? "/painel" : "/atracao-selecao";
 
   /*
    * O recorte vale para as quatro bases ao mesmo tempo.
