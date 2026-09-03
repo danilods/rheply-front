@@ -2,6 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==================================================================== *
+ * Sistema Rheply — camada de tokens única
+ *
+ * Uma só definição de tipografia e cor para o produto inteiro, em tema claro
+ * e escuro. Os tokens antigos (--background, --primary, os slate e teal
+ * escritos à mão) continuam de pé: as rotas migram para cá uma a uma, sem
+ * que nenhuma tela existente mude de aparência no meio do caminho.
+ *
+ * A cor não é decorativa. A rampa de magnitude é o próprio gradiente do logo
+ * (teal #0ea5a4 → azul) amostrado em quatro degraus, e os três estados são a
+ * única cor que aparece fora dela. Toda a paleta foi verificada: contraste
+ * sobre a superfície de cada tema, monotonia de luminância na rampa, e
+ * separação sob protanopia, deuteranopia e tritanopia.
+ * ==================================================================== */
+
+:root {
+  /* --- tipografia: uma família, dois desenhos ---------------------- */
+  --rh-fonte: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --rh-fonte-estreita: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+
+  /* --- superfícies (tema claro é o padrão) ------------------------- */
+  --rh-fundo: #eef1f5;
+  --rh-superficie: #ffffff;
+  --rh-superficie-funda: #e2e8f0;
+
+  /* --- tinta, com o contraste medido sobre a superfície ------------ */
+  --rh-tinta: #0f172a;      /* 17,9:1 */
+  --rh-tinta-2: #475569;    /*  7,6:1 */
+  --rh-tinta-3: #64748b;    /*  4,8:1 — o piso do texto de corpo */
+
+  /* --- fios --------------------------------------------------------- */
+  --rh-fio: #cbd5e1;
+  --rh-fio-forte: #94a3b8;
+
+  /* --- marca -------------------------------------------------------- */
+  --rh-marca: #0ea5a4;
+  --rh-marca-2: #3b82f6;
+
+  /* --- estado: a única cor que existe fora da rampa ----------------- */
+  --rh-alarme: #b91c1c;     /* 6,5:1 */
+  --rh-atencao: #d97706;         /* 3,2:1 — preenchimento e marca */
+  --rh-atencao-texto: #92400e;   /* 7,1:1 — a mesma atenção, em texto */
+  --rh-processo: #0f766e;   /* 5,5:1 */
+
+  /* --- rampa ordinal de magnitude -----------------------------------
+     Azul, e não o teal da marca, porque verde afirma "bom". Uma barra de
+     volume não pode ter valência: o estoque parado e o não comparecimento
+     apareceriam sussurrando que está tudo certo. O teal recua para onde a
+     valência positiva cabe — o anel de foco e o estado "em processo". */
+  --rh-rampa-1: #3b82f6;
+  --rh-rampa-2: #2563eb;
+  --rh-rampa-3: #1e40af;
+  --rh-rampa-4: #172554;
+  --rh-nulo: #94a3b8;       /* dado ausente, que não é uma categoria */
+
+  /* A tinta que vai POR CIMA de cada preenchimento vem junto com ele,
+     em vez de ser adivinhada por luminância em tempo de execução. */
+  --rh-sobre-rampa-1: #ffffff;
+  --rh-sobre-rampa-2: #ffffff;
+  --rh-sobre-rampa-3: #ffffff;
+  --rh-sobre-rampa-4: #ffffff;
+  --rh-sobre-nulo: #0f172a;
+  --rh-sobre-alarme: #ffffff;
+  --rh-sobre-atencao: #0f172a;
+  --rh-sobre-processo: #ffffff;
+
+  --rh-foco: #0ea5a4;
+
+  /* A única sombra do sistema. No escuro precisa ser mais funda para existir. */
+  --rh-sombra: 0 3px 14px -4px rgb(15 23 42 / 38%);
+}
+
+[data-rh-tema="escuro"] {
+  --rh-fundo: #020617;
+  --rh-superficie: #0f172a;
+  --rh-superficie-funda: #1e293b;
+
+  --rh-tinta: #f8fafc;      /* 17,1:1 */
+  --rh-tinta-2: #cbd5e1;    /* 12,0:1 */
+  --rh-tinta-3: #94a3b8;    /*  7,0:1 */
+
+  --rh-fio: #334155;
+  --rh-fio-forte: #475569;
+
+  --rh-alarme: #f87171;     /* 6,5:1 */
+  --rh-atencao: #fbbf24;         /* 10,7:1 */
+  --rh-atencao-texto: #fbbf24;
+  --rh-processo: #2dd4bf;   /*  9,6:1 */
+
+  --rh-rampa-1: #2563eb;
+  --rh-rampa-2: #3b82f6;
+  --rh-rampa-3: #60a5fa;
+  --rh-rampa-4: #bfdbfe;
+  --rh-nulo: #64748b;
+
+  --rh-sobre-rampa-1: #ffffff;
+  --rh-sobre-rampa-2: #ffffff;
+  --rh-sobre-rampa-3: #0f172a;
+  --rh-sobre-rampa-4: #0f172a;
+  --rh-sobre-nulo: #ffffff;
+  --rh-sobre-alarme: #0f172a;
+  --rh-sobre-atencao: #0f172a;
+  --rh-sobre-processo: #0f172a;
+
+  --rh-foco: #2dd4bf;
+  --rh-sombra: 0 3px 16px -3px rgb(2 6 23 / 72%);
+}
+
 @layer base {
   /* Dark theme as default (matching RHeply prototype) */
   :root {

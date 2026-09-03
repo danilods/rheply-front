@@ -1,0 +1,670 @@
+/*
+ * Quadro sinóptico de Atração & Seleção.
+ *
+ * A gramática vem do painel mímico de um centro de operação de concessionária,
+ * que é um sistema documentado (ISA-101, High Performance HMI), não um tema:
+ * fundo cinza-claro, saturação baixa em tudo, e cor reservada por lei ao estado
+ * anormal. Se tudo tem cor, nada é alarme.
+ *
+ * A cena manda: projetado numa sala com a luz acesa, lido a três metros. Fundo
+ * escuro está descartado por fato. Cinza-claro, e não branco, porque branco puro
+ * espalha o brilho do projetor.
+ *
+ * Separação é por fio, nunca por cartão. O cartão empilhado é o contêiner
+ * preguiçoso que fazia tudo competir por atenção na versão anterior.
+ */
+
+/* ------------------------------------------------------------------ *
+ * Sangramento: o quadro ocupa o console inteiro
+ *
+ * O console do dashboard respira 16px no telefone e 32px no desktop, e trava
+ * o conteúdo em 1280px. Para uma tela de formulário isso está certo; para um
+ * quadro projetado a três metros, o teto joga fora um terço da largura da
+ * sala e é o que obriga os rótulos a cortarem. Aqui o painel anula os dois e
+ * passa a dar o próprio respiro. O :has() mantém a regra presa a esta rota:
+ * nenhuma outra tela do dashboard enxerga esta mudança, e onde ele não existe
+ * o painel apenas volta ao comportamento antigo.
+ * ------------------------------------------------------------------ */
+
+main:has(> div > .rs-painel) { padding: 0; }
+main > div:has(> .rs-painel) { max-width: none; margin: 0; }
+
+.rs-painel {
+  padding: 16px 16px 40px;
+}
+@media (min-width: 768px) {
+  .rs-painel { padding: 28px 32px 56px; }
+}
+
+.rs-painel {
+  /* ---------------------------------------------------------------- *
+   * O quadro não tem paleta própria: ele consome o sistema Rheply.
+   *
+   * Os nomes --rs-* continuam porque são o vocabulário do instrumento
+   * (fio, placa, alarme, rampa), mas cada um agora é apenas um apelido
+   * do token do sistema. Trocar o tema troca os dois de uma vez, e
+   * nenhuma cor deste módulo existe fora de globals.css.
+   * ---------------------------------------------------------------- */
+
+  --rs-quadro: var(--rh-fundo);
+  --rs-placa: var(--rh-superficie);
+  --rs-placa-funda: var(--rh-superficie-funda);
+
+  --rs-tinta: var(--rh-tinta);
+  --rs-tinta-2: var(--rh-tinta-2);
+  --rs-tinta-3: var(--rh-tinta-3);
+
+  --rs-fio: var(--rh-fio);
+  --rs-fio-forte: var(--rh-fio-forte);
+
+  /* Lei de estado: cor só existe fora do normal. Normal não tem cor. */
+  --rs-alarme: var(--rh-alarme);
+  --rs-atencao: var(--rh-atencao);
+  --rs-atencao-texto: var(--rh-atencao-texto);
+  --rs-processo: var(--rh-processo);
+  --rs-normal: var(--rh-tinta-2);
+
+  /* Magnitude: o gradiente da marca em quatro degraus. */
+  --rs-rampa-1: var(--rh-rampa-1);
+  --rs-rampa-2: var(--rh-rampa-2);
+  --rs-rampa-3: var(--rh-rampa-3);
+  --rs-rampa-4: var(--rh-rampa-4);
+  --rs-serie-nula: var(--rh-nulo);
+
+  --rs-foco: var(--rh-foco);
+  --rs-sombra: var(--rh-sombra);
+
+  --rs-texto: var(--rh-fonte);
+  --rs-quadro-fonte: var(--rh-fonte-estreita);
+
+  /* --- ritmo ------------------------------------------------------ */
+  --rs-u: 4px;
+
+  background: var(--rs-quadro);
+  color: var(--rs-tinta);
+  font-family: var(--rs-texto);
+  font-size: 15px;
+  line-height: 1.45;
+  font-feature-settings: "tnum" 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Superfícies do navegador que ninguém desenha e que entregam a origem
+   genérica de uma página: seleção, cursor, barra de rolagem e foco. */
+.rs-painel ::selection {
+  background: var(--rs-rampa-3);
+  color: var(--rh-sobre-rampa-3);
+}
+.rs-painel * {
+  caret-color: var(--rs-foco);
+}
+.rs-painel :focus-visible {
+  outline: 2px solid var(--rs-foco);
+  outline-offset: 2px;
+}
+.rs-painel [data-rolagem] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rs-fio-forte) transparent;
+}
+.rs-painel [data-rolagem]::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.rs-painel [data-rolagem]::-webkit-scrollbar-thumb {
+  background: var(--rs-fio-forte);
+  border: 3px solid var(--rs-placa);
+  border-radius: 999px;
+}
+.rs-painel [data-rolagem]::-webkit-scrollbar-track {
+  background: transparent;
+}
+.rs-painel a {
+  color: inherit;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tipografia do quadro
+ * ------------------------------------------------------------------ */
+
+/* Rótulo de equipamento: caixa alta condensada, como silkscreen de painel. */
+.rs-rotulo {
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--rs-tinta-2);
+  line-height: 1.2;
+}
+
+.rs-titulo {
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-size: clamp(26px, 3vw, 34px);
+  letter-spacing: -0.005em;
+  line-height: 1.05;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.rs-cabeca {
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+/* A leitura de instrumento: número grande, tabular, sem hesitação. */
+.rs-leitura {
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-size: 40px;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: var(--rs-tinta);
+}
+.rs-leitura--grande { font-size: clamp(52px, 7vw, 78px); }
+.rs-leitura--peq { font-size: 26px; }
+.rs-unidade {
+  font-family: var(--rs-texto);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0;
+  color: var(--rs-tinta-2);
+  margin-left: 6px;
+}
+
+.rs-num { font-variant-numeric: tabular-nums; }
+.rs-prosa { max-width: 68ch; }
+
+/* ------------------------------------------------------------------ *
+ * Placa: a superfície onde o dado vive. Fio, não cartão.
+ * ------------------------------------------------------------------ */
+
+.rs-placa {
+  background: var(--rs-placa);
+  border-top: 2px solid var(--rs-fio-forte);
+  padding: calc(var(--rs-u) * 4) calc(var(--rs-u) * 4) calc(var(--rs-u) * 3.5);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.rs-placa > .rs-cabeca + .rs-sub { margin-top: 2px; }
+.rs-sub {
+  font-size: 14px;
+  color: var(--rs-tinta-2);
+  margin: 0 0 calc(var(--rs-u) * 3);
+  max-width: 62ch;
+  line-height: 1.4;
+}
+
+/* Bloco de seção: mais ar acima do título do que abaixo. */
+.rs-secao { margin-top: calc(var(--rs-u) * 9); }
+.rs-secao > :first-child { margin-bottom: calc(var(--rs-u) * 3); }
+
+/* ------------------------------------------------------------------ *
+ * Barra de estado: as classes, suas contagens e seus prazos
+ * ------------------------------------------------------------------ */
+
+.rs-estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  /* O fio entre as classes é a folga deixando o fundo aparecer, não uma borda.
+     Com borda, a primeira célula de cada fileira nova carrega um fio pendurado
+     à esquerda quando a barra quebra no telefone. */
+  background: var(--rs-fio);
+  border-top: 2px solid var(--rs-fio-forte);
+}
+.rs-estado {
+  flex: 1 1 150px;
+  padding: calc(var(--rs-u) * 3) calc(var(--rs-u) * 4);
+  background: var(--rs-placa);
+  min-width: 0;
+}
+.rs-estado__topo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: calc(var(--rs-u) * 1.5);
+}
+/* A forma carrega o estado antes da cor: quadrado é alarme, losango é
+   atenção, círculo vazado é normal. Alguém que não distingue as cores
+   continua lendo o quadro. */
+.rs-marca {
+  width: 11px;
+  height: 11px;
+  flex: none;
+  background: currentColor;
+}
+.rs-marca--alarme { border-radius: 0; }
+.rs-marca--atencao { transform: rotate(45deg); }
+.rs-marca--normal {
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid currentColor;
+}
+.rs-marca--processo { border-radius: 50%; }
+
+.rs-estado--alarme { color: var(--rs-alarme); }
+.rs-estado--atencao { color: var(--rs-atencao-texto); }
+.rs-estado--processo { color: var(--rs-processo); }
+.rs-estado--normal { color: var(--rs-normal); }
+.rs-estado__valor { color: var(--rs-tinta); }
+.rs-estado__prazo {
+  font-size: 14px;
+  color: var(--rs-tinta-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ *
+ * Etiqueta de estado: cor, forma e palavra, sempre as três
+ * ------------------------------------------------------------------ */
+
+.rs-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--rs-tinta-2);
+}
+.rs-etiqueta .rs-marca { width: 9px; height: 9px; }
+.rs-etiqueta--alarme { color: var(--rs-alarme); }
+.rs-etiqueta--atencao { color: var(--rs-atencao-texto); }
+.rs-etiqueta--processo { color: var(--rs-processo); }
+
+/* ------------------------------------------------------------------ *
+ * Régua de filtros
+ * ------------------------------------------------------------------ */
+
+.rs-regua {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: calc(var(--rs-u) * 3);
+  padding: calc(var(--rs-u) * 3) 0;
+  border-bottom: 1px solid var(--rs-fio);
+}
+.rs-campo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.rs-campo select,
+.rs-busca {
+  appearance: none;
+  font-family: var(--rs-texto);
+  font-size: 14px;
+  color: var(--rs-tinta);
+  background: var(--rs-placa);
+  border: 1px solid var(--rs-fio-forte);
+  border-radius: 0;
+  height: 34px;
+  padding: 0 26px 0 9px;
+  min-width: 132px;
+  max-width: 230px;
+}
+.rs-campo select {
+  /* Um data-URI não enxerga variável CSS, então a seta vem uma por tema, cada
+     uma na cor da tinta secundária do seu. Antes havia um só cinza fixo, que
+     no escuro sumia. */
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23475569' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 9px;
+  cursor: pointer;
+}
+[data-rh-tema="escuro"] .rs-campo select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23cbd5e1' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+.rs-busca { padding-right: 9px; min-width: 210px; }
+.rs-campo select:hover { border-color: var(--rs-tinta-2); }
+
+.rs-botao {
+  font-family: var(--rs-texto);
+  font-size: 14px;
+  height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--rs-fio-forte);
+  background: transparent;
+  color: var(--rs-tinta-2);
+  border-radius: 0;
+  cursor: pointer;
+}
+.rs-botao:hover { border-color: var(--rs-tinta); color: var(--rs-tinta); }
+.rs-botao:disabled { opacity: 0.45; cursor: not-allowed; }
+.rs-botao--forte {
+  background: var(--rs-tinta);
+  border-color: var(--rs-tinta);
+  color: var(--rs-placa);
+  font-weight: 500;
+}
+.rs-botao--forte:hover { background: var(--rs-foco); border-color: var(--rs-foco); color: var(--rs-placa); }
+
+.rs-contagem {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--rs-tinta-3);
+  font-variant-numeric: tabular-nums;
+  padding-bottom: 8px;
+}
+.rs-contagem b { color: var(--rs-tinta); font-weight: 600; }
+
+/* ------------------------------------------------------------------ *
+ * Tabela
+ * ------------------------------------------------------------------ */
+
+.rs-tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rs-tabela thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--rs-placa-funda);
+  padding: 0;
+  border-bottom: 1px solid var(--rs-fio-forte);
+  text-align: left;
+}
+.rs-tabela thead button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 7px 11px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--rs-tinta-3);
+  white-space: nowrap;
+}
+.rs-tabela thead button:hover { color: var(--rs-tinta); }
+.rs-tabela th.rs-num-col button { justify-content: flex-end; }
+.rs-tabela td {
+  padding: 6px 11px;
+  border-bottom: 1px solid var(--rs-fio);
+  color: var(--rs-tinta-2);
+  white-space: nowrap;
+}
+.rs-tabela td.rs-num-col {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--rs-tinta);
+}
+.rs-tabela td.rs-quebra { white-space: normal; min-width: 160px; max-width: 300px; }
+.rs-tabela tbody tr:hover td { background: var(--rs-placa-funda); }
+
+/* ------------------------------------------------------------------ *
+ * Gráficos: a cor do dado fica presa dentro desta moldura
+ * ------------------------------------------------------------------ */
+
+.rs-grafico { position: relative; min-height: 40px; }
+.rs-grafico svg { display: block; width: 100%; height: auto; overflow: visible; }
+.rs-g-fio { stroke: var(--rs-fio); stroke-width: 1; shape-rendering: crispEdges; }
+.rs-g-eixo { stroke: var(--rs-fio-forte); stroke-width: 1; shape-rendering: crispEdges; }
+.rs-g-limiar { stroke: var(--rs-alarme); stroke-width: 1.5; stroke-linecap: round; }
+.rs-t-rotulo { font-family: var(--rs-texto); font-size: 14px; fill: var(--rs-tinta-2); }
+.rs-t-valor {
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-size: 14px;
+  fill: var(--rs-tinta);
+  font-variant-numeric: tabular-nums;
+}
+.rs-t-marca { font-family: var(--rs-texto); font-size: 13px; fill: var(--rs-tinta-2); font-variant-numeric: tabular-nums; }
+.rs-t-nota { font-family: var(--rs-texto); font-size: 14px; fill: var(--rs-tinta-2); font-variant-numeric: tabular-nums; }
+.rs-t-limiar { font-family: var(--rs-texto); font-size: 13px; fill: var(--rs-alarme); }
+
+/* Série única fala no segundo degrau da rampa. Azul, e não o teal da marca,
+   porque uma barra de volume não pode afirmar que o número é bom. */
+.rs-mk { fill: var(--rs-rampa-2); }
+.rs-mk--fraca { fill: var(--rs-serie-nula); }
+.rs-mk:hover { opacity: 0.82; }
+.rs-mk:focus-visible { outline: none; stroke: var(--rs-tinta); stroke-width: 2; }
+
+.rs-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 16px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--rs-tinta-2);
+}
+.rs-legenda i { width: 10px; height: 10px; flex: none; display: inline-block; }
+
+.rs-numeros { margin-top: 12px; border-top: 1px solid var(--rs-fio); padding-top: 7px; }
+.rs-numeros summary {
+  cursor: pointer;
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--rs-tinta-2);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.rs-numeros summary::-webkit-details-marker { display: none; }
+.rs-numeros summary svg { flex: none; transition: transform 140ms ease; }
+.rs-numeros[open] summary svg { transform: rotate(90deg); }
+.rs-numeros summary:hover { color: var(--rs-tinta); }
+
+.rs-vazio {
+  padding: 34px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--rs-tinta-3);
+}
+
+/* ------------------------------------------------------------------ *
+ * Dica sobre a marca
+ * ------------------------------------------------------------------ */
+
+.rs-dica {
+  position: fixed;
+  z-index: 60;
+  pointer-events: none;
+  background: var(--rs-tinta);
+  color: var(--rs-placa);
+  padding: 6px 9px;
+  font-size: 13px;
+  line-height: 1.35;
+  max-width: 280px;
+  box-shadow: var(--rs-sombra);
+}
+.rs-dica b {
+  display: block;
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+}
+
+/* ------------------------------------------------------------------ *
+ * O momento de movimento: um filtro reescopa a folha inteira, e isso
+ * se vê. Parte de um estado já visível, desacelera exponencialmente, e
+ * some para quem pediu menos movimento.
+ * ------------------------------------------------------------------ */
+
+@keyframes rs-reassentar {
+  from { transform: translateY(3px); opacity: 0.55; }
+  to { transform: none; opacity: 1; }
+}
+.rs-reassenta > * {
+  animation: rs-reassentar 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.rs-reassenta > :nth-child(2) { animation-delay: 40ms; }
+.rs-reassenta > :nth-child(3) { animation-delay: 80ms; }
+.rs-reassenta > :nth-child(4) { animation-delay: 120ms; }
+.rs-reassenta > :nth-child(5) { animation-delay: 160ms; }
+.rs-reassenta > :nth-child(6) { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-painel *,
+  .rs-reassenta > * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Grade
+ * ------------------------------------------------------------------ */
+
+.rs-grade {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: calc(var(--rs-u) * 4);
+  /* Cada placa termina onde o dado dela termina. Esticar todas até a altura
+     da linha alinha as bases, mas abre um vão morto embaixo do instrumento
+     mais curto, e num quadro de operação vão morto lê-se como dado faltando. */
+  align-items: start;
+}
+.rs-c4 { grid-column: span 4; }
+.rs-c5 { grid-column: span 5; }
+.rs-c6 { grid-column: span 6; }
+.rs-c7 { grid-column: span 7; }
+.rs-c8 { grid-column: span 8; }
+.rs-c12 { grid-column: span 12; }
+
+/* Três larguras, não duas. Entre o tablet e o monitor havia um salto único que
+   empilhava tudo numa coluna só a partir de 1100px, e uma placa de gráfico
+   ocupando 1000px de largura para mostrar seis barras é desperdício de tela
+   tanto quanto texto cortado. */
+@media (max-width: 1100px) {
+  .rs-c4, .rs-c5, .rs-c6 { grid-column: span 6; }
+  /* Os instrumentos largos continuam largos: o unifilar tem cinco etapas em
+     régua posicionada e não sobrevive a meia largura aqui. */
+  .rs-c7, .rs-c8 { grid-column: span 12; }
+  /* Sem isto, uma placa larga seguida de uma estreita deixa meia fileira de
+     painel vazia. A compactação puxa a próxima placa que couber para o
+     buraco, adiantando no máximo uma posição. */
+  .rs-grade { grid-auto-flow: row dense; }
+}
+@media (max-width: 780px) {
+  .rs-c4, .rs-c5, .rs-c6, .rs-c7, .rs-c8 { grid-column: span 12; }
+  .rs-grade { gap: calc(var(--rs-u) * 3); }
+}
+@media (max-width: 640px) {
+  .rs-painel { font-size: 14px; }
+  .rs-placa { padding: calc(var(--rs-u) * 3); }
+  .rs-contagem { margin-left: 0; width: 100%; padding-bottom: 0; }
+  .rs-estado { flex: 1 1 100%; }
+}
+
+/* ------------------------------------------------------------------ *
+ * Unifilar: a régua de etapas
+ *
+ * Cada rótulo ocupa a largura do próprio vão e quebra em duas linhas dentro
+ * dela. Antes eram textos de SVG centrados no nó, e como o viewBox não mede
+ * versalete com entreletra, dois nomes vizinhos escreviam um por cima do
+ * outro justamente na leitura mais importante do quadro.
+ * ------------------------------------------------------------------ */
+
+.rs-unifilar__rotulos {
+  position: relative;
+  height: 2.9em;
+  margin-bottom: calc(var(--rs-u) * 2);
+}
+.rs-unifilar__rotulo {
+  position: absolute;
+  top: 0;
+  width: calc(100% / var(--rs-vaos) - 12px);
+  font-family: var(--rs-quadro-fonte);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--rs-tinta-3);
+  overflow-wrap: break-word;
+}
+
+/* Cinco etapas num vão de 70px não cabem, e encolher a fonte só troca um
+   defeito por outro: abaixo do piso de legibilidade o rótulo deixa de ser
+   rótulo. No telefone a régua abandona a posição e vira lista numerada acima
+   do traço — a ordem da lista é a ordem dos nós, da esquerda para a direita,
+   e a tabela gêmea continua carregando cada valor por extenso. */
+@media (max-width: 720px) {
+  .rs-unifilar__rotulos {
+    position: static;
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 12px;
+    counter-reset: etapa;
+    margin-bottom: calc(var(--rs-u) * 3);
+  }
+  .rs-unifilar__rotulo {
+    position: static;
+    width: auto;
+    transform: none !important;
+    text-align: left !important;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+  .rs-unifilar__rotulo::before {
+    counter-increment: etapa;
+    content: counter(etapa) " ";
+    color: var(--rs-tinta);
+    font-weight: 700;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Leituras: cartão de painel
+ *
+ * Cada leitura é uma peça fechada, com o rótulo em cima, o número no corpo e
+ * a referência embaixo. Cartão aqui não quer dizer canto redondo e sombra:
+ * quer dizer superfície própria com fio de topo, do mesmo vocabulário das
+ * placas de instrumento. A grade se reacomoda sozinha de seis a uma coluna.
+ * ------------------------------------------------------------------ */
+
+.rs-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
+  gap: calc(var(--rs-u) * 3);
+}
+.rs-cartao {
+  background: var(--rs-placa);
+  border-top: 2px solid var(--rs-fio-forte);
+  padding: calc(var(--rs-u) * 3.5) calc(var(--rs-u) * 4) calc(var(--rs-u) * 4);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.rs-cartao .rs-leitura {
+  /* Um degrau só, que se adapta. Antes eram 31px aqui e 28px no telefone:
+     razão de 1,11 entre dois valores fixos não é escada, é o mesmo corpo
+     escrito duas vezes. */
+  font-size: clamp(26px, 2.1vw, 31px);
+  margin: calc(var(--rs-u) * 2) 0 0;
+}
+/* O rótulo reserva duas linhas mesmo quando ocupa uma: sem isso os números
+   dos cartões vizinhos param em alturas diferentes e a fileira deixa de ser
+   comparável de relance, que é a única razão de existir um cartão. */
+.rs-cartao .rs-rotulo { margin: 0; min-height: 2.4em; }
+.rs-cartao .rs-estado__prazo { margin: calc(var(--rs-u) * 1.5) 0 0; }
+@media (max-width: 640px) {
+  .rs-cartoes { grid-template-columns: repeat(auto-fit, minmax(144px, 1fr)); gap: calc(var(--rs-u) * 2); }
+  .rs-cartao { padding: calc(var(--rs-u) * 3); }
+}
+
+/* As seis abas quebram linha em vez de rolarem para fora da tela: metade do
+   módulo invisível num telefone, sem nenhum sinal de que havia mais. */
+.rs-abas { flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .rs-abas > a { padding: 10px 12px; }
+}

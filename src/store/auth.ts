@@ -14,6 +14,9 @@ export interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
+  /** A escolha da caixa "lembrar de mim", que a renovação precisa respeitar. */
+  lembrarSessao: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -28,6 +31,8 @@ interface AuthActions {
   setToken: (token: string) => void;
   clearError: () => void;
   checkAuth: () => boolean;
+  /** Troca o refresh token por um access token novo. Devolve null se a sessão acabou. */
+  renovarSessao: () => Promise<string | null>;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -35,11 +40,61 @@ type AuthStore = AuthState & AuthActions;
 const initialState: AuthState = {
   user: null,
   token: null,
+  refreshToken: null,
+  lembrarSessao: false,
   isAuthenticated: false,
   isLoading: false,
   error: null,
   _hasHydrated: false,
 };
+
+/**
+ * Instante de expiração de um JWT, em milissegundos, ou null se o token não
+ * disser. Ler o `exp` é o que separa "tenho um token" de "tenho uma sessão":
+ * antes disso o app se achava logado com um token vencido e só descobria no
+ * primeiro 401, que derrubava tudo para a tela de login.
+ */
+export function expiraEm(token: string | null): number | null {
+  if (!token) return null;
+  try {
+    const carga = JSON.parse(atob(token.split(".")[1]));
+    return typeof carga.exp === "number" ? carga.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Margem antes do vencimento em que já vale renovar, para não perder a corrida. */
+export const MARGEM_RENOVACAO_MS = 60_000;
+
+export function tokenExpirado(token: string | null, margem = 0): boolean {
+  const quando = expiraEm(token);
+  if (quando === null) return false;
+  return Date.now() + margem >= quando;
+}
+
+/**
+ * O cookie existe para o middleware, que roda no servidor e não enxerga o
+ * localStorage. Ele dura o que a sessão dura de verdade — a vida do refresh
+ * token —, e não uma janela fixa escolhida à parte. Quando as duas durações
+ * divergem, ou o middleware barra quem ainda tem sessão, ou deixa passar quem
+ * já não tem e a página só descobre no primeiro 401.
+ */
+function gravarCookie(token: string, refresh: string | null, lembrar: boolean) {
+  if (typeof document === "undefined") return;
+
+  // Sem "lembrar de mim" o cookie não leva prazo: morre quando o navegador
+  // fecha, que é o que a caixa promete. Com ele, dura o que o refresh dura.
+  if (!lembrar) {
+    document.cookie = `auth-token=${token}; path=/; SameSite=Lax`;
+    return;
+  }
+  const fim = expiraEm(refresh);
+  const segundos = fim
+    ? Math.max(0, Math.floor((fim - Date.now()) / 1000))
+    : 60 * 60 * 24;
+  document.cookie = `auth-token=${token}; path=/; max-age=${segundos}; SameSite=Lax`;
+}
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -64,12 +119,8 @@ export const useAuthStore = create<AuthStore>()(
 
           // Backend returns access_token, map to token
           const token = data.access_token;
-
-          // Set cookie for server-side middleware access
-          if (typeof document !== "undefined") {
-            const maxAge = rememberMe ? 60 * 60 * 24 * 7 : 60 * 60 * 24; // 7 days or 1 day
-            document.cookie = `auth-token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
-          }
+          gravarCookie(token, data.refresh_token ?? null, rememberMe);
+          set({ lembrarSessao: rememberMe });
 
           // Decode JWT to get user info
           const payload = JSON.parse(atob(token.split('.')[1]));
@@ -85,6 +136,10 @@ export const useAuthStore = create<AuthStore>()(
           set({
             user,
             token,
+            // Sem guardar isto, a sessão morria em trinta minutos e não havia
+            // como renovar: o backend devolve o refresh desde sempre e o
+            // frontend o descartava na linha seguinte.
+            refreshToken: data.refresh_token ?? null,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -162,12 +217,41 @@ export const useAuthStore = create<AuthStore>()(
 
       checkAuth: () => {
         const { token, user, isAuthenticated } = get();
-        const isValid = !!(token && user);
+        const isValid = !!(token && user) && !tokenExpirado(token);
         // Only update state if it changed to avoid infinite re-renders
         if (isAuthenticated !== isValid) {
           set({ isAuthenticated: isValid });
         }
         return isValid;
+      },
+
+      renovarSessao: async () => {
+        const { refreshToken } = get();
+        if (!refreshToken || tokenExpirado(refreshToken)) return null;
+
+        try {
+          const resposta = await fetch("/api/v1/auth/refresh", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+          if (!resposta.ok) return null;
+
+          const dados = await resposta.json();
+          const novo: string | undefined = dados.access_token;
+          if (!novo) return null;
+
+          gravarCookie(novo, dados.refresh_token ?? refreshToken, get().lembrarSessao);
+          set({
+            token: novo,
+            refreshToken: dados.refresh_token ?? refreshToken,
+            isAuthenticated: true,
+          });
+          return novo;
+        } catch {
+          // Rede fora não é sessão vencida: quem chamou decide o que fazer.
+          return null;
+        }
       },
     }),
     {
@@ -185,6 +269,8 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         user: state.user,
         token: state.token,
+        refreshToken: state.refreshToken,
+        lembrarSessao: state.lembrarSessao,
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {

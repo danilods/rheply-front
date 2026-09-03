@@ -35,3 +35,8 @@ next-env.d.ts
 # IDE
 .idea
 .vscode
+
+# Estado da ferramenta de design: capturas de revisão e configuração local.
+# São 6 MB de PNG que não pertencem ao repositório; DESIGN.md e o sidecar sim.
+.impeccable/review/
+.impeccable/build/

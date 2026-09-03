@@ -31,6 +31,12 @@ export function middleware(request: NextRequest) {
     isAuthenticated = true;
   }
 
+  // A rota de link público é aberta por gente sem conta: não pode passar pelo
+  // guarda de sessão, senão o link só funcionaria para quem já está logado.
+  if (pathname.startsWith("/painel/")) {
+    return NextResponse.next();
+  }
+
   // Skip middleware for static files, API routes, and _next
   if (
     pathname.startsWith("/_next") ||
@@ -54,7 +60,10 @@ export function middleware(request: NextRequest) {
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
   // Check if current route is a protected route (dashboard, etc.)
-  const isProtectedRoute = pathname.startsWith("/dashboard");
+  // Rotas que exigem sessão no servidor. Sem isso, o conteúdo só é protegido
+  // pelo layout no cliente, o que deixa a página piscar antes de redirecionar.
+  const protectedRoutes = ["/dashboard", "/atracao-selecao"];
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
   // Redirect authenticated users away from auth pages
   if (isAuthenticated && isAuthRoute) {

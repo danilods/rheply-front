@@ -1,0 +1,15 @@
+{
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-radius",
+        "value": "999px",
+        "createdAt": "2026-09-03T05:17:56.635Z",
+        "reason": "DESIGN.md 'Shapes' lista o polegar da barra de rolagem como uma das tres excecoes funcionais ao raio 0, ao lado da ponta do dado (4px) e da marca de estado circular"
+      }
+    ]
+  }
+}

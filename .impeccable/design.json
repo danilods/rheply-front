@@ -1,0 +1,676 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-03T10:18:28Z",
+  "title": "Design System: Sistema Rheply",
+  "extensions": {
+    "colorMeta": {
+      "marca": {
+        "role": "primary",
+        "displayName": "Teal Rheply",
+        "canonical": "#0ea5a4",
+        "note": "A cor da marca. Fora do logo, vive somente em --rh-foco (anel de foco, cursor, hover do botao forte) e no estado --rh-processo. Saiu da rampa de magnitude: valencia positiva so onde ela significa algo.",
+        "tonalRamp": [
+          "#042f2e",
+          "#134e4a",
+          "#115e59",
+          "#0f766e",
+          "#0d9488",
+          "#0ea5a4",
+          "#2dd4bf",
+          "#99f6e4"
+        ]
+      },
+      "marca-2": {
+        "role": "primary",
+        "displayName": "Azul Rheply",
+        "canonical": "#3b82f6",
+        "note": "A outra ponta do gradiente do logo, e a matiz que passou a governar a rampa ordinal inteira. Igual ao valor de rampa-1 no tema claro.",
+        "tonalRamp": [
+          "#172554",
+          "#1e3a8a",
+          "#1e40af",
+          "#1d4ed8",
+          "#2563eb",
+          "#3b82f6",
+          "#93c5fd",
+          "#dbeafe"
+        ]
+      },
+      "fundo": {
+        "role": "neutral",
+        "displayName": "Cinza de Sala",
+        "canonical": "#eef1f5",
+        "note": "Cinza-azulado e nao branco puro: branco espalha o brilho do projetor.",
+        "tonalRamp": [
+          "#020617",
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#eef1f5"
+        ]
+      },
+      "superficie": {
+        "role": "neutral",
+        "displayName": "Placa",
+        "canonical": "#ffffff",
+        "note": "A superficie onde o dado vive. Aberta por fio de 2px no topo, nunca fechada por caixa.",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#e2e8f0",
+          "#ffffff"
+        ]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#0f172a",
+        "note": "17,9:1 sobre a placa no claro; o par escuro (#f8fafc) mede 17,1:1.",
+        "tonalRamp": [
+          "#020617",
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1"
+        ]
+      },
+      "tinta-2": {
+        "role": "neutral",
+        "displayName": "Tinta Media",
+        "canonical": "#475569",
+        "note": "7,6:1 no claro, 12,0:1 no escuro. E tambem a cor do estado NORMAL: normal nao tem cor.",
+        "tonalRamp": [
+          "#020617",
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#e2e8f0"
+        ]
+      },
+      "tinta-3": {
+        "role": "neutral",
+        "displayName": "Tinta Baixa",
+        "canonical": "#64748b",
+        "note": "4,8:1 no claro, 7,0:1 no escuro. E o piso do texto de corpo; nada desce abaixo dele.",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#f1f5f9"
+        ]
+      },
+      "fio": {
+        "role": "neutral",
+        "displayName": "Fio",
+        "canonical": "#cbd5e1",
+        "note": "1px, divide dentro de um bloco. A unica ferramenta de separacao junto com fio-forte.",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#f1f5f9"
+        ]
+      },
+      "fio-forte": {
+        "role": "neutral",
+        "displayName": "Fio Forte",
+        "canonical": "#94a3b8",
+        "note": "2px no topo, abre um bloco. Tambem o contorno de campo e o polegar de rolagem.",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#f8fafc"
+        ]
+      },
+      "alarme": {
+        "role": "tertiary",
+        "displayName": "Alarme",
+        "canonical": "#b91c1c",
+        "note": "6,5:1 nos dois temas (escuro: #f87171). O que estourou o prazo, o limiar em grafico, a borda de erro. Forma: quadrado.",
+        "tonalRamp": [
+          "#450a0a",
+          "#7f1d1d",
+          "#991b1b",
+          "#b91c1c",
+          "#dc2626",
+          "#ef4444",
+          "#f87171",
+          "#fecaca"
+        ]
+      },
+      "atencao": {
+        "role": "tertiary",
+        "displayName": "Atencao",
+        "canonical": "#d97706",
+        "note": "Voz de preenchimento e marca: 3,2:1 sobre a placa clara, que satisfaz o piso de 3:1 de objeto grafico e NAO serve para texto. Par escuro: #fbbf24 (10,7:1).",
+        "tonalRamp": [
+          "#451a03",
+          "#78350f",
+          "#92400e",
+          "#b45309",
+          "#d97706",
+          "#f59e0b",
+          "#fbbf24",
+          "#fde68a"
+        ]
+      },
+      "processo": {
+        "role": "tertiary",
+        "displayName": "Processo",
+        "canonical": "#0f766e",
+        "note": "5,5:1 no claro, 9,6:1 no escuro (#2dd4bf). O que esta em movimento normal, mas em movimento. Forma: circulo cheio.",
+        "tonalRamp": [
+          "#042f2e",
+          "#134e4a",
+          "#115e59",
+          "#0f766e",
+          "#0d9488",
+          "#14b8a6",
+          "#2dd4bf",
+          "#99f6e4"
+        ]
+      },
+      "rampa-1": {
+        "role": "tertiary",
+        "displayName": "Rampa 1 (magnitude minima)",
+        "canonical": "#3b82f6",
+        "note": "Par escuro: #2563eb. Azul medio. A rampa deixou de ser teal->navy: verde afirma 'bom', e uma barra de volume nao pode ter valencia.",
+        "tonalRamp": [
+          "#172554",
+          "#1e3a8a",
+          "#1e40af",
+          "#1d4ed8",
+          "#2563eb",
+          "#3b82f6",
+          "#93c5fd",
+          "#dbeafe"
+        ]
+      },
+      "rampa-2": {
+        "role": "tertiary",
+        "displayName": "Rampa 2 (magnitude baixa)",
+        "canonical": "#2563eb",
+        "note": "Par escuro: #3b82f6. Preenchimento default de serie unica (.rs-mk): um grafico de uma serie so nao codifica magnitude, entao fala num degrau medio e nao na cor da marca.",
+        "tonalRamp": [
+          "#172554",
+          "#1e3a8a",
+          "#1e40af",
+          "#1d4ed8",
+          "#2563eb",
+          "#3b82f6",
+          "#93c5fd",
+          "#dbeafe"
+        ]
+      },
+      "rampa-3": {
+        "role": "tertiary",
+        "displayName": "Rampa 3 (magnitude alta)",
+        "canonical": "#1e40af",
+        "note": "Par escuro: #60a5fa. No escuro a tinta companheira vira escura (#0f172a): e o preenchimento claro que pede tinta escura.",
+        "tonalRamp": [
+          "#172554",
+          "#1e3a8a",
+          "#1e40af",
+          "#1d4ed8",
+          "#2563eb",
+          "#3b82f6",
+          "#93c5fd",
+          "#dbeafe"
+        ]
+      },
+      "rampa-4": {
+        "role": "tertiary",
+        "displayName": "Rampa 4 (magnitude maxima)",
+        "canonical": "#172554",
+        "note": "Par escuro: #bfdbfe. Degrau 4 e sempre o de maior contraste contra a placa, nos dois temas, ainda que a direcao da rampa inverta.",
+        "tonalRamp": [
+          "#172554",
+          "#1e3a8a",
+          "#1e40af",
+          "#1d4ed8",
+          "#2563eb",
+          "#3b82f6",
+          "#93c5fd",
+          "#dbeafe"
+        ]
+      },
+      "nulo": {
+        "role": "neutral",
+        "displayName": "Dado Ausente",
+        "canonical": "#94a3b8",
+        "note": "Par escuro: #64748b. E a cor de um valor que falta, NAO uma categoria. Nunca participa de rampa nem de legenda ordenada.",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#f1f5f9"
+        ]
+      },
+      "foco": {
+        "role": "primary",
+        "displayName": "Foco",
+        "canonical": "#0ea5a4",
+        "note": "Par escuro: #2dd4bf. Anel de foco de 2px com offset de 2px, caret e hover do botao forte.",
+        "tonalRamp": [
+          "#042f2e",
+          "#134e4a",
+          "#115e59",
+          "#0f766e",
+          "#0d9488",
+          "#0ea5a4",
+          "#2dd4bf",
+          "#99f6e4"
+        ]
+      },
+      "atencao-texto": {
+        "role": "state",
+        "displayName": "Atencao (voz de texto)",
+        "canonical": "#92400e",
+        "note": "A mesma atencao em texto: 7,1:1 no claro. Consumida por .rs-estado--atencao e .rs-etiqueta--atencao. No escuro coincide com a voz de preenchimento (#fbbf24), que ja mede 10,7:1.",
+        "tonalRamp": [
+          "#451a03",
+          "#78350f",
+          "#92400e",
+          "#b45309",
+          "#d97706",
+          "#f59e0b",
+          "#fcd34d",
+          "#fef3c7"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "titulo": {
+        "displayName": "Titulo",
+        "purpose": "O nome da tela. Uma vez por rota, em Inter Tight, com text-wrap: balance."
+      },
+      "leitura-grande": {
+        "displayName": "Leitura Grande",
+        "purpose": "O numero que domina a tela. Tabular, entrelinha 0.95. Uma por tela no maximo."
+      },
+      "leitura": {
+        "displayName": "Leitura",
+        "purpose": "Valor de instrumento em faixa e em barra de estado. Variante miuda a 26px. A escada declarada e 12 - 13 - 14 - 15 - 19 - 26 - 28 - 31 - 40px, mais os dois clamp. Nenhum meio pixel: o que separa dois textos vizinhos e peso e tinta, nao 0,5px."
+      },
+      "cabeca": {
+        "displayName": "Cabeca",
+        "purpose": "Titulo de placa e de tabela."
+      },
+      "corpo": {
+        "displayName": "Corpo",
+        "purpose": "Prosa e controles, em Inter. Cai para 14px abaixo de 640px. Prosa limitada a 68ch."
+      },
+      "rotulo": {
+        "displayName": "Rotulo",
+        "purpose": "O silkscreen do painel: nome de equipamento, nome de campo, aba. Caixa alta, 0.09em."
+      },
+      "rotulo-miudo": {
+        "displayName": "Rotulo Miudo",
+        "purpose": "Etiqueta de estado e cabecalho de tabela. E o piso: nada em caixa alta desce abaixo de 12px."
+      },
+      "apoio": {
+        "displayName": "Apoio (14px)",
+        "purpose": "O degrau dominante do modulo: onze declaracoes literais, mais que qualquer outro corpo. Piso do texto de apoio dentro de instrumento (rotulo e valor de grafico, nota, subtitulo de placa, corpo de tabela, campo, botao, prazo), porque o quadro e lido projetado a dois ou tres metros."
+      },
+      "leitura-cartao": {
+        "displayName": "Leitura de cartao (31px)",
+        "purpose": "O numeral do cartao de leitura no desktop; 28px abaixo de 640px. Ver a divergencia registrada: 26/28/31 sao tres corpos numa faixa de cinco pixels e nao constituem tres degraus."
+      }
+    },
+    "shadows": [
+      {
+        "name": "dica-flutuante",
+        "value": "var(--rh-sombra) — claro: 0 3px 14px -4px rgb(15 23 42 / 38%); escuro: 0 3px 16px -3px rgb(2 6 23 / 72%)",
+        "purpose": "A unica sombra do sistema. Existe apenas porque o tooltip e position: fixed sobre conteudo arbitrario. E um token por tema: no escuro precisa ser mais funda e mais opaca para existir sobre uma placa quase preta. Nenhuma superficie em fluxo recebe sombra."
+      }
+    ],
+    "motion": [
+      {
+        "name": "rs-reassentar",
+        "value": "420ms cubic-bezier(0.16, 1, 0.3, 1) both; from { transform: translateY(3px); opacity: 0.55 }",
+        "purpose": "O unico momento autorado. Reassentamento da folha quando um filtro reescopa tudo. Parte de um estado ja visivel e desacelera."
+      },
+      {
+        "name": "escalonamento",
+        "value": "40ms por filho, ate o sexto",
+        "purpose": "Aplicado aos filhos diretos de .rs-reassenta, para que a folha reassente em cascata e nao em bloco."
+      },
+      {
+        "name": "reducao-de-movimento",
+        "value": "@media (prefers-reduced-motion: reduce) { animation: none !important; transition: none !important }",
+        "purpose": "Desliga toda animacao e toda transicao dentro de .rs-painel, sem excecao."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compacto",
+        "value": "640px",
+        "note": "Corpo cai para 14px; placa comprime para 12px; contagem passa a linha inteira; .rs-cartoes aperta para minmax(144px, 1fr) com goteira de 8px e leitura de 28px."
+      },
+      {
+        "name": "telefone-largo",
+        "value": "720px",
+        "note": "Regua unifilar abandona a posicao absoluta e vira lista numerada; abas afrouxam para 10px 12px."
+      },
+      {
+        "name": "tablet",
+        "value": "768px",
+        "note": "min-width: respiro lateral do quadro sobe de 16px para 28/32px."
+      },
+      {
+        "name": "grade-estreita",
+        "value": "780px",
+        "note": "Todos os vaos passam a span 12; goteira da grade cai de 16px para 12px."
+      },
+      {
+        "name": "grade-media",
+        "value": "1100px",
+        "note": "Faixa intermediaria: .rs-c4/.rs-c5/.rs-c6 passam a span 6, .rs-c7/.rs-c8 permanecem span 12 (o unifilar tem cinco etapas em regua posicionada e nao sobrevive a meia largura), e a grade ganha grid-auto-flow: row dense para que uma placa estreita preencha a meia fileira deixada por uma larga."
+      }
+    ],
+    "themeSwitch": {
+      "attribute": "data-rh-tema",
+      "values": [
+        "claro",
+        "escuro"
+      ],
+      "default": "claro",
+      "persistence": "localStorage, chave 'rs-tema', dentro de try/catch",
+      "rationale": "O quadro e projetado numa sala com a luz acesa durante a FUP semanal e projetor lava o preto. O escuro existe para quem le na mesa."
+    },
+    "layers": {
+      "atual": {
+        "where": "src/app/globals.css, bloco --rh-* no topo",
+        "consume": "var(--rh-*), ou os apelidos --rs-* dentro do modulo",
+        "status": "usar em toda superficie nova"
+      },
+      "legada": {
+        "where": "src/app/globals.css, @layer base: --background, --primary, --secondary, --muted, --accent, --destructive, --border, --ring, --chart-1..5, e a classe .light",
+        "consume": "utilitarios Tailwind bg-background, text-foreground, bg-primary",
+        "status": "congelada; migracao rota a rota. Nenhuma tela existente mudou de aparencia nesta passagem."
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Botao",
+      "kind": "button",
+      "refersTo": "botao",
+      "description": "A forma default do botao: uma moldura de 1px, nao uma mancha. Altura fixa de 34px, raio 0.",
+      "html": "<button class=\"ds-botao\">Limpar</button>",
+      "css": ".ds-botao { font-family: var(--rh-fonte, Inter, system-ui, sans-serif); font-size: 14px; height: 34px; padding: 0 13px; border: 1px solid var(--rh-fio-forte, #94a3b8); background: transparent; color: var(--rh-tinta-2, #475569); border-radius: 0; cursor: pointer; } .ds-botao:hover { border-color: var(--rh-tinta, #0f172a); color: var(--rh-tinta, #0f172a); } .ds-botao:focus-visible { outline: 2px solid var(--rh-foco, #0ea5a4); outline-offset: 2px; } .ds-botao:disabled { opacity: 0.45; cursor: not-allowed; }"
+    },
+    {
+      "name": "Botao Forte",
+      "kind": "button",
+      "refersTo": "botao-forte",
+      "description": "A acao principal. Um por tela, no maximo. Fundo de tinta, texto na cor da placa; o hover troca o fundo para a cor de foco.",
+      "html": "<button class=\"ds-botao-forte\">Importar carga</button>",
+      "css": ".ds-botao-forte { font-family: var(--rh-fonte, Inter, system-ui, sans-serif); font-size: 14px; font-weight: 500; height: 34px; padding: 0 13px; background: var(--rh-tinta, #0f172a); border: 1px solid var(--rh-tinta, #0f172a); color: var(--rh-superficie, #ffffff); border-radius: 0; cursor: pointer; } .ds-botao-forte:hover { background: var(--rh-foco, #0ea5a4); border-color: var(--rh-foco, #0ea5a4); color: var(--rh-superficie, #ffffff); } .ds-botao-forte:focus-visible { outline: 2px solid var(--rh-foco, #0ea5a4); outline-offset: 2px; }"
+    },
+    {
+      "name": "Campo com Rotulo",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Select da regua de filtros. Rotulo em caixa alta sempre presente acima; chevron desenhado inline; raio 0 e altura 34px como todo controle. O chevron e a unica duplicacao deliberada do sistema: um data-URI por tema, porque data-URI nao le variavel CSS.",
+      "html": "<div class=\"ds-campo\"><label class=\"ds-campo-rotulo\" for=\"ds-recrutador\">Recrutador</label><select class=\"ds-campo-select\" id=\"ds-recrutador\"><option>Todos</option><option>Camila</option></select></div>",
+      "css": ".ds-campo { display: flex; flex-direction: column; gap: 3px; min-width: 0; } .ds-campo-rotulo { font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-size: 13px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--rh-tinta-2, #475569); line-height: 1.2; } .ds-campo-select { appearance: none; font-family: var(--rh-fonte, Inter, system-ui, sans-serif); font-size: 14px; color: var(--rh-tinta, #0f172a); background-color: var(--rh-superficie, #ffffff); border: 1px solid var(--rh-fio-forte, #94a3b8); border-radius: 0; height: 34px; padding: 0 26px 0 9px; min-width: 132px; max-width: 230px; cursor: pointer; background-image: url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23475569' stroke-width='1.5'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 9px center; background-size: 9px; } .ds-campo-select:hover { border-color: var(--rh-tinta-2, #475569); } .ds-campo-select:focus-visible { outline: 2px solid var(--rh-foco, #0ea5a4); outline-offset: 2px; } [data-rh-tema=\"escuro\"] .ds-campo-select { background-image: url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23cbd5e1' stroke-width='1.5'/%3E%3C/svg%3E\"); }"
+    },
+    {
+      "name": "Placa",
+      "kind": "card",
+      "refersTo": "placa",
+      "description": "A superficie onde o dado vive. Aberta por um fio de 2px no topo, sem borda lateral nem inferior, sem raio e sem sombra. Fio, nao cartao.",
+      "html": "<section class=\"ds-placa\"><h3 class=\"ds-placa-cabeca\">Vagas fora do prazo</h3><p class=\"ds-placa-sub\">Cada linha traz ha quantos dias e de quem e.</p><p class=\"ds-placa-leitura\">14<span class=\"ds-placa-unidade\">vagas</span></p></section>",
+      "css": ".ds-placa { background: var(--rh-superficie, #ffffff); border-top: 2px solid var(--rh-fio-forte, #94a3b8); padding: 16px 16px 14px; display: flex; flex-direction: column; min-width: 0; border-radius: 0; } .ds-placa-cabeca { font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-size: 19px; letter-spacing: 0.01em; line-height: 1.15; margin: 0; color: var(--rh-tinta, #0f172a); } .ds-placa-sub { font-family: var(--rh-fonte, Inter, system-ui, sans-serif); font-size: 14px; color: var(--rh-tinta-2, #475569); margin: 2px 0 12px; max-width: 62ch; line-height: 1.4; } .ds-placa-leitura { font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 40px; line-height: 0.95; letter-spacing: -0.01em; color: var(--rh-tinta, #0f172a); margin: 0; } .ds-placa-unidade { font-family: var(--rh-fonte, Inter, system-ui, sans-serif); font-weight: 500; font-size: 14px; letter-spacing: 0; color: var(--rh-tinta-2, #475569); margin-left: 6px; }"
+    },
+    {
+      "name": "Barra de Estado",
+      "kind": "custom",
+      "refersTo": "placa",
+      "description": "Componente assinatura. Cada classe traz forma, palavra, contagem e prazo. A forma carrega o estado antes da cor: quadrado alarme, losango atencao, circulo cheio processo, circulo vazado normal. O fio entre celulas e folga deixando o fundo aparecer, nao borda. A palavra usa a voz de texto da atencao (--rh-atencao-texto), nunca a de preenchimento. A barra permanece faixa, e nao cartao, porque as classes particionam um mesmo todo.",
+      "html": "<div class=\"ds-estados\"><div class=\"ds-estado ds-estado--alarme\"><div class=\"ds-estado-topo\"><span class=\"ds-marca ds-marca--alarme\"></span><span class=\"ds-estado-palavra\">Fora do prazo</span></div><p class=\"ds-estado-valor\">14</p><p class=\"ds-estado-prazo\">acima de 35 dias</p></div><div class=\"ds-estado ds-estado--atencao\"><div class=\"ds-estado-topo\"><span class=\"ds-marca ds-marca--atencao\"></span><span class=\"ds-estado-palavra\">No limite</span></div><p class=\"ds-estado-valor\">9</p><p class=\"ds-estado-prazo\">28 a 35 dias</p></div><div class=\"ds-estado ds-estado--processo\"><div class=\"ds-estado-topo\"><span class=\"ds-marca ds-marca--processo\"></span><span class=\"ds-estado-palavra\">Em processo</span></div><p class=\"ds-estado-valor\">31</p><p class=\"ds-estado-prazo\">com evento nos ultimos 5 dias</p></div><div class=\"ds-estado ds-estado--normal\"><div class=\"ds-estado-topo\"><span class=\"ds-marca ds-marca--normal\"></span><span class=\"ds-estado-palavra\">Normal</span></div><p class=\"ds-estado-valor\">62</p><p class=\"ds-estado-prazo\">dentro do prazo-alvo</p></div></div>",
+      "css": ".ds-estados { display: flex; flex-wrap: wrap; gap: 1px; background: var(--rh-fio, #cbd5e1); border-top: 2px solid var(--rh-fio-forte, #94a3b8); font-family: var(--rh-fonte, Inter, system-ui, sans-serif); } .ds-estado { flex: 1 1 150px; padding: 12px 16px; background: var(--rh-superficie, #ffffff); min-width: 0; } .ds-estado--alarme { color: var(--rh-alarme, #b91c1c); } .ds-estado--atencao { color: var(--rh-atencao-texto, #92400e); } .ds-estado--processo { color: var(--rh-processo, #0f766e); } .ds-estado--normal { color: var(--rh-tinta-2, #475569); } .ds-estado-topo { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; } .ds-estado-palavra { font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-size: 13px; letter-spacing: 0.09em; text-transform: uppercase; color: inherit; line-height: 1.2; } .ds-marca { width: 11px; height: 11px; flex: none; background: currentColor; display: inline-block; } .ds-marca--alarme { border-radius: 0; } .ds-marca--atencao { transform: rotate(45deg); } .ds-marca--processo { border-radius: 50%; } .ds-marca--normal { border-radius: 50%; background: transparent; border: 2px solid currentColor; } .ds-estado-valor { font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 26px; line-height: 0.95; letter-spacing: -0.01em; color: var(--rh-tinta, #0f172a); margin: 0; } .ds-estado-prazo { font-size: 14px; color: var(--rh-tinta-2, #475569); font-variant-numeric: tabular-nums; margin: 4px 0 0; }"
+    },
+    {
+      "name": "Etiqueta de Estado",
+      "kind": "chip",
+      "refersTo": "aba",
+      "description": "Cor, forma e palavra, sempre as tres. Nunca uma pastilha de cor sozinha.",
+      "html": "<span class=\"ds-etiqueta ds-etiqueta--alarme\"><span class=\"ds-marca-p ds-marca-p--alarme\"></span>Fora do prazo</span> <span class=\"ds-etiqueta ds-etiqueta--atencao\"><span class=\"ds-marca-p ds-marca-p--atencao\"></span>Declinou</span> <span class=\"ds-etiqueta\"><span class=\"ds-marca-p ds-marca-p--normal\"></span>Normal</span>",
+      "css": ".ds-etiqueta { display: inline-flex; align-items: center; gap: 6px; font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; color: var(--rh-tinta-2, #475569); } .ds-etiqueta--alarme { color: var(--rh-alarme, #b91c1c); } .ds-etiqueta--atencao { color: var(--rh-atencao, #d97706); } .ds-marca-p { width: 9px; height: 9px; flex: none; background: currentColor; display: inline-block; } .ds-marca-p--alarme { border-radius: 0; } .ds-marca-p--atencao { transform: rotate(45deg); } .ds-marca-p--normal { border-radius: 50%; background: transparent; border: 2px solid currentColor; }"
+    },
+    {
+      "name": "Regua de Abas",
+      "kind": "nav",
+      "refersTo": "aba",
+      "description": "Navegacao do quadro. As celulas se tocam, sem espaco entre elas; a ativa recua para a placa funda e ganha um sublinhado de 3px por inset shadow. No telefone quebra linha, nunca rola.",
+      "html": "<nav class=\"ds-abas\" aria-label=\"Telas do quadro\"><a class=\"ds-aba ds-aba--ativa\" href=\"#\" aria-current=\"page\">Sinoptico</a><a class=\"ds-aba\" href=\"#\">Vagas em aberto</a><a class=\"ds-aba\" href=\"#\">Contratacoes</a><a class=\"ds-aba\" href=\"#\">Funil</a></nav>",
+      "css": ".ds-abas { display: flex; gap: 0; flex-wrap: wrap; border-top: 2px solid var(--rh-fio-forte, #94a3b8); border-bottom: 1px solid var(--rh-fio, #cbd5e1); background: var(--rh-superficie, #ffffff); } .ds-aba { font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-size: 13px; letter-spacing: 0.09em; text-transform: uppercase; line-height: 1.2; padding: 11px 16px; white-space: nowrap; text-decoration: none; color: var(--rh-tinta-2, #475569); background: transparent; } .ds-aba:hover { color: var(--rh-tinta, #0f172a); } .ds-aba:focus-visible { outline: 2px solid var(--rh-foco, #0ea5a4); outline-offset: -2px; } .ds-aba--ativa { color: var(--rh-tinta, #0f172a); background: var(--rh-superficie-funda, #e2e8f0); box-shadow: inset 0 -3px 0 var(--rh-tinta, #0f172a); }"
+    },
+    {
+      "name": "Tabela Auditavel",
+      "kind": "custom",
+      "refersTo": "placa",
+      "description": "Cabecalho colante sobre a placa funda, com o rotulo dentro de um botao que ordena e expoe aria-sort. Coluna numerica alinha a direita em tabular-nums e sobe para tinta.",
+      "html": "<table class=\"ds-tabela\"><thead><tr><th scope=\"col\"><button type=\"button\" aria-sort=\"none\">Vaga</button></th><th scope=\"col\"><button type=\"button\" aria-sort=\"none\">Recrutador</button></th><th scope=\"col\" class=\"ds-num\"><button type=\"button\" aria-sort=\"descending\">Aging</button></th></tr></thead><tbody><tr><td class=\"ds-quebra\">Promotor(a) de Vendas &middot; Belem</td><td>Camila</td><td class=\"ds-num\">61</td></tr><tr><td class=\"ds-quebra\">Eletricista de Rede &middot; Macapa</td><td>Rafael</td><td class=\"ds-num\">48</td></tr></tbody></table>",
+      "css": ".ds-tabela { width: 100%; border-collapse: collapse; font-family: var(--rh-fonte, Inter, system-ui, sans-serif); font-size: 14px; } .ds-tabela thead th { position: sticky; top: 0; z-index: 1; background: var(--rh-superficie-funda, #e2e8f0); padding: 0; border-bottom: 1px solid var(--rh-fio-forte, #94a3b8); text-align: left; } .ds-tabela thead button { display: flex; align-items: center; gap: 4px; width: 100%; padding: 7px 11px; background: none; border: 0; cursor: pointer; font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-size: 12px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--rh-tinta-3, #64748b); white-space: nowrap; } .ds-tabela thead button:hover { color: var(--rh-tinta, #0f172a); } .ds-tabela thead button:focus-visible { outline: 2px solid var(--rh-foco, #0ea5a4); outline-offset: -2px; } .ds-tabela th.ds-num button { justify-content: flex-end; } .ds-tabela td { padding: 6px 11px; border-bottom: 1px solid var(--rh-fio, #cbd5e1); color: var(--rh-tinta-2, #475569); white-space: nowrap; } .ds-tabela td.ds-num { text-align: right; font-variant-numeric: tabular-nums; color: var(--rh-tinta, #0f172a); } .ds-tabela td.ds-quebra { white-space: normal; min-width: 160px; max-width: 300px; } .ds-tabela tbody tr:hover td { background: var(--rh-superficie-funda, #e2e8f0); }"
+    },
+    {
+      "name": "Tabela Gemea",
+      "kind": "custom",
+      "refersTo": "placa",
+      "description": "Componente assinatura da lei de acesso: todo grafico publica os seus numeros em tabela, na mesma placa, atras de um details. O marcador nativo e substituido por um chevron que gira 90 graus quando aberto.",
+      "html": "<details class=\"ds-numeros\"><summary><svg aria-hidden width=\"6\" height=\"9\" viewBox=\"0 0 6 9\"><path d=\"M0.5 0.5 L5 4.5 L0.5 8.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"></path></svg>Os numeros</summary><p class=\"ds-numeros-corpo\">Triagem 412 &middot; Entrevista 148 &middot; Oferta 39 &middot; Contratado 31</p></details>",
+      "css": ".ds-numeros { margin-top: 12px; border-top: 1px solid var(--rh-fio, #cbd5e1); padding-top: 7px; font-family: var(--rh-fonte, Inter, system-ui, sans-serif); } .ds-numeros summary { cursor: pointer; font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-size: 13px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--rh-tinta-2, #475569); list-style: none; display: flex; align-items: center; gap: 7px; } .ds-numeros summary::-webkit-details-marker { display: none; } .ds-numeros summary svg { flex: none; transition: transform 140ms ease; } .ds-numeros[open] summary svg { transform: rotate(90deg); } .ds-numeros summary:hover { color: var(--rh-tinta, #0f172a); } .ds-numeros summary:focus-visible { outline: 2px solid var(--rh-foco, #0ea5a4); outline-offset: 2px; } .ds-numeros-corpo { font-size: 13px; color: var(--rh-tinta-2, #475569); font-variant-numeric: tabular-nums; margin: 8px 0 0; }"
+    },
+    {
+      "name": "Troca de Tema",
+      "kind": "button",
+      "refersTo": "botao",
+      "description": "Botao padrao com icone SVG inline (lua no claro, sol no escuro) e aria-pressed. Escreve data-rh-tema na raiz da rota e guarda a escolha em localStorage sob a chave rs-tema, dentro de try/catch.",
+      "html": "<button type=\"button\" class=\"ds-tema\" aria-pressed=\"false\" title=\"Passar para o tema escuro\"><svg aria-hidden width=\"15\" height=\"15\" viewBox=\"0 0 15 15\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\"><path d=\"M12.5 9.3A5.4 5.4 0 0 1 5.7 2.5a5.5 5.5 0 1 0 6.8 6.8Z\" stroke-linejoin=\"round\"></path></svg>Escuro</button>",
+      "css": ".ds-tema { display: flex; align-items: center; gap: 7px; flex: none; font-family: var(--rh-fonte, Inter, system-ui, sans-serif); font-size: 14px; height: 34px; padding: 0 13px; border: 1px solid var(--rh-fio-forte, #94a3b8); background: transparent; color: var(--rh-tinta-2, #475569); border-radius: 0; cursor: pointer; } .ds-tema:hover { border-color: var(--rh-tinta, #0f172a); color: var(--rh-tinta, #0f172a); } .ds-tema:focus-visible { outline: 2px solid var(--rh-foco, #0ea5a4); outline-offset: 2px; }"
+    },
+    {
+      "name": "Cartao de Leitura",
+      "kind": "card",
+      "refersTo": "cartao",
+      "description": "A faixa de leituras do topo do quadro. Cartao aqui quer dizer superficie delimitada por fio de topo, nao canto redondo com sombra: raio 0, sombra nenhuma. O rotulo reserva duas linhas para que os numerais da fileira alinhem e a comparacao aconteca de relance.",
+      "html": "<div class=\"ds-cartoes\"><div class=\"ds-cartao\"><p class=\"ds-cartao-rotulo\">Tempo medio de preenchimento</p><p class=\"ds-cartao-leitura\">38<span class=\"ds-cartao-unidade\">dias</span></p><p class=\"ds-cartao-ref\">meta: 30 dias</p></div><div class=\"ds-cartao\"><p class=\"ds-cartao-rotulo\">Vagas abertas</p><p class=\"ds-cartao-leitura\">126</p><p class=\"ds-cartao-ref\">em 9 regionais</p></div><div class=\"ds-cartao\"><p class=\"ds-cartao-rotulo\">Conversao do funil</p><p class=\"ds-cartao-leitura\">4,1<span class=\"ds-cartao-unidade\">%</span></p><p class=\"ds-cartao-ref\">candidatos ate contratacao</p></div></div>",
+      "css": ".ds-cartoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 12px; font-family: var(--rh-fonte, Inter, system-ui, sans-serif); } .ds-cartao { background: var(--rh-superficie, #ffffff); border-top: 2px solid var(--rh-fio-forte, #94a3b8); border-radius: 0; box-shadow: none; padding: 14px 16px 16px; min-width: 0; display: flex; flex-direction: column; } .ds-cartao-rotulo { font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-size: 13px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--rh-tinta-2, #475569); line-height: 1.2; margin: 0; min-height: 2.4em; } .ds-cartao-leitura { font-family: var(--rh-fonte-estreita, 'Inter Tight', Inter, system-ui, sans-serif); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 31px; line-height: 0.95; letter-spacing: -0.01em; color: var(--rh-tinta, #0f172a); margin: 8px 0 0; } .ds-cartao-unidade { font-family: var(--rh-fonte, Inter, system-ui, sans-serif); font-weight: 500; font-size: 14px; letter-spacing: 0; color: var(--rh-tinta-2, #475569); margin-left: 6px; } .ds-cartao-ref { font-size: 14px; color: var(--rh-tinta-2, #475569); font-variant-numeric: tabular-nums; margin: 6px 0 0; } @media (max-width: 640px) { .ds-cartoes { grid-template-columns: repeat(auto-fit, minmax(144px, 1fr)); gap: 8px; } .ds-cartao { padding: 12px; } .ds-cartao-leitura { font-size: 28px; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Quadro Sinóptico da Sala de Operação",
+    "overview": "O sistema tem uma tese só e ela é negativa: **cor é informação escassa**. A interface inteira é tinta sobre superfície neutra, e cada mancha de cor que aparece na tela tem obrigação de significar alguma coisa — ou um estado que saiu do normal, ou uma magnitude dentro de uma rampa ordenada. Não existe paleta categórica, não existe cor de enfeite, não existe uma cor por área do produto. A gramática vem do painel mímico de centro de operação (ISA-101, High Performance HMI), que é um padrão documentado, não um tema visual: se tudo tem cor, nada é alarme.\n\nA partir desta versão o sistema deixou de ser do módulo e passou a ser do produto. `src/app/globals.css` carrega uma camada única de tokens `--rh-*` — tipografia, superfície, tinta, fio, marca, estado, rampa ordinal e a tinta companheira de cada preenchimento — definida em claro no `:root` e em escuro sob `[data-rh-tema=\"escuro\"]`. O módulo Atração & Seleção é o primeiro consumidor dessa camada, não o dono dela. Os nomes `--rs-*` que o painel usa continuam existindo porque são o vocabulário do instrumento (fio, placa, alarme, rampa), mas cada um é hoje um **apelido** de um token `--rh-*`.\n\nA camada antiga continua de pé, intacta: os tokens HSL do shadcn (`--background`, `--primary`, `--secondary`, `--muted`, `--chart-1..5`) e a classe `.light` seguem sendo o que todas as outras rotas consomem. **Nenhuma tela existente mudou de aparência nesta passagem.** A migração é rota a rota, e a fronteira entre as duas camadas é explícita e documentada abaixo.",
+    "keyCharacteristics": [
+      "Uma família tipográfica em dois desenhos (Inter e Inter Tight), zero pareamento decorativo.",
+      "Cor por lei fechada: três estados, uma rampa ordinal azul de quatro degraus, um cinza de dado ausente. Nada mais.",
+      "Separação por fio, nunca por cartão. Raio zero em tudo que é instrumento.",
+      "Claro e escuro são o mesmo sistema com dois valores; a forma, o espaçamento e a tipografia não mudam entre os dois.",
+      "Tema claro é o padrão por fato do produto: o quadro é projetado numa sala com a luz acesa.",
+      "A cor nunca informa sozinha — sempre acompanhada de forma e de palavra."
+    ],
+    "rules": [
+      {
+        "name": "A Regra da Lei Fechada",
+        "body": "Existem exatamente três cores de estado (alarme, atenção, processo), uma rampa ordinal de quatro degraus e um cinza de dado ausente. Uma cor nova só entra no produto se substituir uma dessas. Não se cria cor por categoria, por área, por autor ou por gosto.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Normal Sem Cor",
+        "body": "O curso normal do processo é tinta, nunca uma cor. `COR_DESFECHO` em `metricas.ts` é a prova de aplicação: aprovado, em processo e reprovado ficam na rampa fria e calam; só não-comparecimento (alarme) e declínio (atenção) acendem. Nenhuma categoria ordinária gasta vermelho.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Quarentena",
+        "body": "A cor do dado vive presa dentro da moldura da placa. Fora dela — casca, navegação, régua de filtros, tabela — a interface é tinta sobre neutro. É essa quarentena que impede o produto de virar mosaico.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Rampa Sem Valência",
+        "body": "A rampa de magnitude é azul e não pode ganhar verde, âmbar ou vermelho em nenhum degrau. Uma escala que mede quantidade não tem o direito de dizer se a quantidade é boa; julgamento é privilégio das três cores de estado. Verde numa barra de volume é uma afirmação que ninguém autorizou.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra das Duas Vozes da Atenção",
+        "body": "Toda cor de estado que não alcança 4,5:1 sobre a placa tem duas entradas: uma para preenchimento e marca (piso de 3:1) e outra, mais escura, para texto. Pintar palavra pequena com a voz de preenchimento é defeito, não licença poética.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Ausente Fora da Ordem",
+        "body": "`--rh-nulo` nunca participa de uma rampa nem de uma legenda ordenada. Dado que falta não tem posição.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Tinta Declarada",
+        "body": "Todo preenchimento colorido consome a sua tinta companheira `--rh-sobre-*`. Calcular contraste em runtime está proibido: o valor certo já está no token e vira com o tema.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Letra Única",
+        "body": "Uma família, dois desenhos. Uma terceira fonte no produto é um defeito, não uma decisão. Nenhuma fonte de sistema (`Georgia`, `Times`, `-apple-system` como display) entra como face de exibição — `system-ui` só existe como fallback na pilha.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Número Tabular",
+        "body": "Todo número que pode ser comparado verticalmente — coluna, leitura, prazo, contagem — usa `tabular-nums`. Coluna numérica alinha à direita.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Piso de Apoio",
+        "body": "Dentro de um instrumento, texto de apoio não desce abaixo de **14px**. O quadro é lido projetado a dois ou três metros; 13px e 12px existem só para caixa alta com entreletra, que se lê pela silhueta da palavra.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Degrau Inteiro",
+        "body": "Todo corpo declarado é um número inteiro de pixels e pertence à escada. Meio pixel não é um degrau: se dois textos precisam se distinguir e um degrau inteiro é demais, quem separa é o peso e a tinta, não 0,5px.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Piso de Legibilidade",
+        "body": "Rótulo em caixa alta não encolhe abaixo de 12px para caber. Se não cabe, muda a forma do layout (foi o que a régua unifilar fez ao virar lista numerada abaixo de 720px), não o corpo da letra.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Sangramento Escopado",
+        "body": "Escapar do contêiner do console é legítimo apenas para uma superfície projetada, e apenas via `:has()` ancorado na classe raiz da própria rota. Nenhuma rota altera o shell globalmente.",
+        "section": "layout"
+      },
+      {
+        "name": "A Regra do Vão que Não Encolhe",
+        "body": "Um instrumento largo (`.rs-c7`, `.rs-c8`) não vira meia largura: ou tem a linha inteira, ou tem a largura autorada. Reduzir pela metade uma régua de cinco etapas posicionadas quebra o instrumento em vez de adaptá-lo. Quem cede espaço é a placa estreita, e `row dense` garante que o espaço cedido seja ocupado.",
+        "section": "layout"
+      },
+      {
+        "name": "A Regra do Ar Assimétrico",
+        "body": "Título recebe mais espaço acima do que abaixo. O título pertence ao que vem depois dele.",
+        "section": "layout"
+      },
+      {
+        "name": "A Regra do Fio, Não do Cartão",
+        "body": "Superfícies são separadas por linha e por tom, nunca por sombra. Um elemento só recebe sombra se ele flutua fora do fluxo do documento.",
+        "section": "elevation"
+      },
+      {
+        "name": "A Regra da Superfície Plana",
+        "body": "Nenhum `border-radius` + `box-shadow` + `background` combinados formando \"card\". Se um bloco precisa ser distinguido, ele ganha um fio de 2px no topo.",
+        "section": "elevation"
+      },
+      {
+        "name": "A Regra da Forma Antes da Cor",
+        "body": "Todo estado tem forma própria **e** palavra própria. Cor é o terceiro canal, nunca o primeiro nem o único. Uma legenda de cor sem forma e sem texto não é entregável.",
+        "section": "shapes"
+      },
+      {
+        "name": "A Regra do Canto Reto",
+        "body": "Instrumento não tem raio. `border-radius` diferente de 0 precisa de justificativa geométrica (um círculo é redondo; um botão não).",
+        "section": "shapes"
+      },
+      {
+        "name": "A Regra da Parte e do Todo",
+        "body": "Números que particionam um mesmo total vivem numa faixa contínua, separados por folga. Números independentes entre si vivem em cartões separados. Nunca se escolhe entre as duas por gosto visual: escolhe-se perguntando se somar as células significa alguma coisa.",
+        "section": "components"
+      },
+      {
+        "name": "A Regra do Padrão Claro",
+        "body": "O tema claro é o padrão do quadro e isso é fato de produto, não preferência: o painel é projetado numa sala com a luz acesa durante a FUP semanal, e projetor lava o preto. O escuro existe para quem lê na mesa e é lembrado por leitor.",
+        "section": "components"
+      },
+      {
+        "name": "A Regra da Tabela Gêmea",
+        "body": "Todo gráfico publica os seus números em tabela, na mesma placa. Um instrumento sem tabela não está pronto.",
+        "section": "components"
+      },
+      {
+        "name": "A Regra da Procedência à Vista",
+        "body": "Data de referência, data da última carga e o destino do dado pessoal (\"descartado na carga\", por LGPD) ficam na face do quadro, sempre visíveis. Esconder de quando é o dado é a forma mais rápida de perder quem decide.",
+        "section": "components"
+      },
+      {
+        "name": "A Regra do Movimento Único",
+        "body": "O quadro tem um movimento e ele responde a uma ação do usuário. Nada anima ao carregar, nada pulsa, nada chama atenção sozinho.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** consumir a camada `--rh-*` de `globals.css` em toda superfície nova. Um valor de cor literal em componente é defeito.",
+      "**Do** declarar a tinta companheira do preenchimento (`--rh-sobre-*`) sempre que um texto for cair sobre cor.",
+      "**Do** dar a todo estado uma forma e uma palavra além da cor (quadrado/losango/círculo cheio/círculo vazado).",
+      "**Do** usar `tabular-nums` em qualquer número comparável e alinhar coluna numérica à direita.",
+      "**Do** separar por fio de 1px dentro do bloco e abrir bloco com 2px de `fio-forte` no topo.",
+      "**Do** manter o ritmo em múltiplos de 4px (`--rs-u`).",
+      "**Do** publicar a tabela gêmea de todo gráfico atrás de `<details>`.",
+      "**Do** usar a voz de texto da cor de estado (`--rh-atencao-texto`) sempre que a cor for pintar palavra, e a voz de preenchimento apenas em barra, fio e marca.",
+      "**Do** escolher entre faixa e cartão pela pergunta da soma: partição de um todo é faixa, leituras independentes são cartões.",
+      "**Do** deixar `.rs-c7` e `.rs-c8` em largura inteira abaixo de 1100px, e contar com `row dense` para fechar a meia fileira.",
+      "**Do** mudar a forma do layout quando o texto não cabe, em vez de encolher a letra abaixo de 12px.",
+      "**Do** manter o padrão claro em superfícies projetadas e persistir a escolha do leitor em `localStorage` com `try/catch`."
+    ],
+    "donts": [
+      "**Don't** criar cor nova. Três estados, quatro degraus de rampa, um nulo. Uma paleta categórica (uma cor por etapa, por área, por autor) está proibida.",
+      "**Don't** colocar verde, teal ou qualquer matiz de valência positiva na rampa de magnitude. Ela mede, não julga.",
+      "**Don't** pintar texto pequeno com `--rh-atencao`; essa é a voz de preenchimento e mede 3,2:1 no claro.",
+      "**Don't** gastar `alarme` em categoria ordinária. Vermelho é para o que estourou, não para \"reprovado\".",
+      "**Don't** usar `--rh-nulo` como se fosse um degrau da rampa ou uma categoria.",
+      "**Don't** adivinhar contraste por luminância em tempo de execução. O token já traz a tinta certa e ela vira com o tema.",
+      "**Don't** empilhar cartões com sombra e raio. \"Cartão\" neste sistema é superfície delimitada por fio de topo; superfície em fluxo não recebe `box-shadow` nem `border-radius`.",
+      "**Don't** arredondar cantos de instrumento. Raio 0, salvo geometria (círculo, polegar de rolagem).",
+      "**Don't** deixar um valor acessível só por hover ou tooltip.",
+      "**Don't** fazer navegação rolar horizontalmente no telefone; ela quebra linha.",
+      "**Don't** alterar o shell do dashboard globalmente para acomodar uma rota — escope por `:has()` ancorado na classe da própria rota.",
+      "**Don't** introduzir uma terceira família tipográfica, nem uma face de exibição de sistema."
+    ]
+  }
+}
