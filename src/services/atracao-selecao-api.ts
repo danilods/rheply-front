@@ -135,8 +135,11 @@ export const atracaoSelecaoApi = {
     // Mesma base do apiClient. Duas regras para o mesmo endereço divergem na
     // primeira vez que só uma delas for atualizada.
     const base = apiClient.baseURL;
-    const url = `${base}${CAMINHOS.painelPublico}?token=${encodeURIComponent(token)}`;
-    const resposta = await fetch(url, { headers: { Accept: "application/json" } });
+    // O token vai no cabeçalho, não na query: numa query string ele ficaria
+    // gravado no log de acesso do nginx e em qualquer proxy do caminho.
+    const resposta = await fetch(`${base}${CAMINHOS.painelPublico}`, {
+      headers: { Accept: "application/json", "X-Painel-Token": token },
+    });
     if (!resposta.ok) throw new Error("link-invalido");
     return (await resposta.json()) as PainelAtracaoSelecao;
   },

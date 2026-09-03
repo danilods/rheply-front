@@ -83,17 +83,23 @@ export function tokenExpirado(token: string | null, margem = 0): boolean {
 function gravarCookie(token: string, refresh: string | null, lembrar: boolean) {
   if (typeof document === "undefined") return;
 
+  // `Secure` em qualquer origem que não seja localhost: sem ele o cookie de
+  // sessão viaja em claro no primeiro salto HTTP, antes de qualquer redirect
+  // para HTTPS. `HttpOnly` não dá para pôr daqui — só o servidor emite um
+  // cookie que o JavaScript não lê —, e isso está registrado como dívida.
+  const seguro = window.location.protocol === "https:" ? "; Secure" : "";
+
   // Sem "lembrar de mim" o cookie não leva prazo: morre quando o navegador
   // fecha, que é o que a caixa promete. Com ele, dura o que o refresh dura.
   if (!lembrar) {
-    document.cookie = `auth-token=${token}; path=/; SameSite=Lax`;
+    document.cookie = `auth-token=${token}; path=/; SameSite=Lax${seguro}`;
     return;
   }
   const fim = expiraEm(refresh);
   const segundos = fim
     ? Math.max(0, Math.floor((fim - Date.now()) / 1000))
     : 60 * 60 * 24;
-  document.cookie = `auth-token=${token}; path=/; max-age=${segundos}; SameSite=Lax`;
+  document.cookie = `auth-token=${token}; path=/; max-age=${segundos}; SameSite=Lax${seguro}`;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -172,7 +178,7 @@ export const useAuthStore = create<AuthStore>()(
 
           // Set cookie for server-side middleware access
           if (typeof document !== "undefined") {
-            document.cookie = `auth-token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+            gravarCookie(data.token, null, true);
           }
 
           set({

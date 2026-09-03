@@ -122,3 +122,36 @@ São **credencial portadora**: quem tem a URL tem o acesso, sem senha.
 produto. É dado pessoal de funcionário circulando fora do perímetro autenticado.
 Vale combinar com quem recebe que o link não deve ser repassado, e revogar
 quando a pessoa deixar de precisar.
+
+---
+
+## 5. Dívida de segurança conhecida
+
+Duas coisas foram corrigidas depois do primeiro deploy, e uma continua aberta
+por ser estrutural.
+
+### Corrigido
+
+- **Cookie de sessão sem `Secure`.** Agora leva `Secure` em qualquer origem que
+  não seja `localhost`. Sem ele, o cookie viajava em claro no primeiro salto
+  HTTP, antes de qualquer redirecionamento para HTTPS.
+- **Token do link público na query string.** Ia como `?token=…`, o que o
+  gravava no log de acesso do nginx e em qualquer proxy do caminho. Agora vai
+  no cabeçalho `X-Painel-Token`. A query segue aceita e marcada como obsoleta,
+  para não quebrar link já distribuído — **remova esse fallback** quando os
+  links da primeira leva tiverem expirado.
+
+### Aberto: token de sessão em `localStorage`
+
+O access token e o refresh token são persistidos em `localStorage`. Qualquer
+XSS na aplicação lê os dois, e o refresh vale sete dias — antes deste trabalho
+a exposição era de trinta minutos, então a correção da sessão aumentou o que
+está em jogo.
+
+A correção certa é o backend emitir os dois como cookie `HttpOnly` + `Secure` +
+`SameSite=Strict`, que o JavaScript não consegue ler. Isso muda o contrato de
+autenticação inteiro — todo o `apiClient`, o middleware e o `authStore` —, e é
+trabalho de uma sessão dedicada, não de um remendo.
+
+Enquanto não for feito, o que reduz o risco é o de sempre: não injetar HTML de
+terceiros nas telas autenticadas e manter as dependências de front atualizadas.
