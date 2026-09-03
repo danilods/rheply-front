@@ -50,6 +50,8 @@ interface Estado {
 
 interface Acoes {
   carregar: (opcoes?: { forcar?: boolean }) => Promise<void>;
+  /** Mesma leitura, por link público. Sem qualidade: ela é da tela de carga. */
+  carregarPublico: (token: string) => Promise<void>;
   definirFiltro: (chave: keyof Filtros, valor: string) => void;
   limparFiltros: () => void;
   limparErro: () => void;
@@ -80,6 +82,20 @@ export const useAtracaoSelecao = create<Estado & Acoes>()((set, get) => ({
       set({ dados, qualidade, carregando: false });
     } catch (erro) {
       set({ erro: mensagemDeErro(erro), carregando: false });
+    }
+  },
+
+  carregarPublico: async (token: string) => {
+    if (get().carregando || get().dados) return;
+    set({ carregando: true, erro: null });
+    try {
+      const dados = await atracaoSelecaoApi.obterPainelPublico(token);
+      set({ dados, qualidade: null, carregando: false });
+    } catch {
+      set({
+        erro: "Este link não vale mais. Peça um novo a quem enviou — eles expiram por segurança.",
+        carregando: false,
+      });
     }
   },
 

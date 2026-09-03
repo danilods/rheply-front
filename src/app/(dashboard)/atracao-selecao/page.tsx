@@ -9,6 +9,7 @@
  */
 
 import { useMemo } from "react";
+import { usePathname } from "next/navigation";
 
 import { CorpoSinoptico } from "@/components/atracao-selecao/sinoptico";
 import { Regua } from "@/components/atracao-selecao/ui";
@@ -17,6 +18,12 @@ import { aplicarFiltros, mesMaximoDe, opcoesDe, useAtracaoSelecao } from "@/stor
 
 export default function PaginaSinoptico() {
   const { dados, qualidade, filtros } = useAtracaoSelecao();
+
+  // A mesma tela serve /atracao-selecao e /painel/<token>. O prefixo sai do
+  // caminho para que os links irmãos apontem para dentro do próprio contexto.
+  const caminho = usePathname() ?? "";
+  const publico = caminho.startsWith("/painel/");
+  const base = publico ? caminho.split("/").slice(0, 3).join("/") : "/atracao-selecao";
 
   /*
    * O recorte vale para as quatro bases ao mesmo tempo.
@@ -70,7 +77,7 @@ export default function PaginaSinoptico() {
       />
 
       <div style={{ marginTop: 16 }}>
-        <CorpoSinoptico recorte={recorte} qualidade={qualidade} recortado={recortado} />
+        <CorpoSinoptico recorte={recorte} qualidade={qualidade} recortado={recortado} interno={!publico} base={base} />
       </div>
     </>
   );

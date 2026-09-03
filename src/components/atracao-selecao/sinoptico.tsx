@@ -39,6 +39,7 @@ export function CorpoSinoptico({
   qualidade,
   recortado = false,
   interno = true,
+  base = "/atracao-selecao",
 }: {
   recorte: ConjuntoSinoptico;
   qualidade?: QualidadeDados | null;
@@ -50,6 +51,8 @@ export function CorpoSinoptico({
    * link parecer quebrado.
    */
   interno?: boolean;
+  /** Prefixo das rotas irmãs: /atracao-selecao ou /painel/<token>. */
+  base?: string;
 }) {
   const c = useMemo(() => {
     if (!recorte) return null;
@@ -242,17 +245,11 @@ export function CorpoSinoptico({
         ) : (
           <p className="rs-vazio">Nenhuma vaga passou do prazo-alvo.</p>
         )}
-        {interno ? (
-          <p style={{ marginTop: 14, marginBottom: 0 }}>
-            <Link href="/atracao-selecao/vagas" className="rs-rotulo" style={{ color: "var(--rs-tinta)" }}>
-              Ver as {fmtN(c.atrasadas.length)} vagas fora do prazo →
-            </Link>
-          </p>
-        ) : c.atrasadas.length > alarmes.length ? (
-          <p className="rs-rotulo" style={{ marginTop: 14, marginBottom: 0, color: "var(--rs-tinta-3)" }}>
-            e mais {fmtN(c.atrasadas.length - alarmes.length)} fora do prazo
-          </p>
-        ) : null}
+        <p style={{ marginTop: 14, marginBottom: 0 }}>
+          <Link href={`${base}/vagas`} className="rs-rotulo" style={{ color: "var(--rs-tinta)" }}>
+            Ver as {fmtN(c.atrasadas.length)} vagas fora do prazo →
+          </Link>
+        </p>
       </section>
 
       <Placa
