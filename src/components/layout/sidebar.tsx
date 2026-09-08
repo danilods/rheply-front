@@ -4,24 +4,25 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Users,
-  Briefcase,
-  Kanban,
-  MessageSquare,
-  Settings,
-  PieChart,
   Bell,
-  Zap,
-  CreditCard,
-  Terminal,
-  LogOut,
-  ClipboardCheck,
-  Globe,
-  Keyboard,
-  Rocket,
+  Briefcase,
   ChevronLeft,
   ChevronRight,
+  ClipboardCheck,
+  CreditCard,
+  Globe,
+  Kanban,
+  Keyboard,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  PieChart,
+  Rocket,
+  Settings,
+  Terminal,
+  TrendingUp,
+  Users,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,9 @@ const menuGroups = [
   {
     title: "Recrutamento",
     items: [
-      { label: "Selecao", path: "/selecao", icon: ClipboardCheck },
-      { label: "Avaliacoes", path: "/dashboard/avaliacoes", icon: Keyboard },
+      { label: "Atração e Seleção", path: "/atracao-selecao", icon: TrendingUp },
+      { label: "Seleção", path: "/selecao", icon: ClipboardCheck },
+      { label: "Avaliações", path: "/dashboard/avaliacoes", icon: Keyboard },
       { label: "Vagas", path: "/jobs", icon: Briefcase },
       { label: "Pipeline", path: "/pipeline", icon: Kanban },
       { label: "Base de Talentos", path: "/candidates", icon: Users },
@@ -50,7 +52,7 @@ const menuGroups = [
     title: "Operacoes",
     items: [
       { label: "WhatsApp", path: "/whatsapp", icon: MessageSquare },
-      { label: "Automacao", path: "/automacoes", icon: Zap },
+      { label: "Automação", path: "/automacoes", icon: Zap },
       { label: "Alertas", path: "/alerts", icon: Bell },
     ],
   },
@@ -66,7 +68,7 @@ const menuGroups = [
     items: [
       { label: "Landing Page (Mkt)", path: "/", icon: Rocket },
       { label: "Portal de Vagas", path: "/vagas", icon: Globe },
-      { label: "Teste Digitacao", path: "/processo-seletivo/teste-digitacao/demo-id", icon: Keyboard },
+      { label: "Teste de Digitação", path: "/processo-seletivo/teste-digitacao/demo-id", icon: Keyboard },
     ],
   },
 ];
@@ -164,7 +166,7 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
               : "hover:bg-slate-800 hover:text-white",
             isCollapsed && "justify-center"
           )}
-          title={isCollapsed ? "Configuracoes" : undefined}
+          title={isCollapsed ? "Configurações" : undefined}
         >
           <Settings
             size={18}
@@ -174,7 +176,7 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
                 : "text-slate-400 group-hover:text-white"
             )}
           />
-          {!isCollapsed && <span>Configuracoes</span>}
+          {!isCollapsed && <span>Configurações</span>}
         </Link>
       </div>
 
