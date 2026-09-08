@@ -89,6 +89,10 @@ export interface ParChaveValor {
  */
 export function maiores(m: Map<string, number>, limite?: number): ParChaveValor[] {
   let a = Array.from(m.entries()).sort((x, y) => y[1] - x[1]);
+  // Pedir "o maior" não pode devolver "Outros" com a soma de todos. Com
+  // limite 1 o corte abaixo faria slice(0), colapsando a lista inteira num
+  // único balde — e quem pediu o maior recebia o total com o rótulo errado.
+  if (limite === 1) return a.slice(0, 1).map(([k, v]) => ({ k, v }));
   if (limite && a.length > limite) {
     const resto = a.slice(limite - 1).reduce((t, x) => t + x[1], 0);
     a = a.slice(0, limite - 1);

@@ -24,7 +24,44 @@ export interface Leitura {
   unidade?: string;
   /** O que o número significa. Sem isso ele não vira decisão. */
   contexto?: ReactNode;
+  /**
+   * Ícone do cartão. Vem do vocabulário abaixo, não de qualquer desenho: um
+   * ícone que só enfeita ocupa o lugar onde o olho procura estado.
+   */
+  icone?: keyof typeof ICONES;
+  /**
+   * Estado da leitura. Muda a cor do ícone e, onde faz diferença, o próprio
+   * desenho — é isto que torna o ícone dinâmico em vez de ilustrativo.
+   */
+  tom?: Severidade;
 }
+
+/**
+ * Ícones do quadro, desenhados no mesmo traço dos instrumentos.
+ *
+ * Traço de 1,6px, canto reto, 18px de caixa: o mesmo peso da tipografia
+ * condensada ao lado. Vêm daqui e não de uma biblioteca porque o resto do
+ * painel recusa arredondamento, e um conjunto arredondado no meio de placas
+ * retas lê como peça de outro sistema.
+ */
+const ICONES = {
+  requisicao: "M4 3h8l3 3v10H4V3Z M11 3v3h3",
+  posicao: "M3 8h5v7H3V8Z M8 4h5v11H8V4Z M13 10h3v5h-3v-5Z",
+  relogio: "M9 2.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Z M9 5.5V9l2.5 2",
+  etapa: "M2.5 9h4l2-4 2 8 2-4h2",
+  ausencia: "M6.5 6.5 11.5 11.5 M11.5 6.5 6.5 11.5 M9 2.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Z",
+  espera: "M5 2.5h8 M5 15.5h8 M5 2.5c0 4 8 6 8 6s-8 2-8 6",
+  pessoa: "M9 3a2.6 2.6 0 1 0 0 5.2A2.6 2.6 0 0 0 9 3Z M3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5",
+  alerta: "M9 2.5 16 15H2L9 2.5Z M9 7v4 M9 12.8v.2",
+  dinheiro: "M9 3v12 M12 6c0-1.4-1.3-2-3-2s-3 .6-3 2 1.3 2 3 2 3 .6 3 2-1.3 2-3 2-3-.6-3-2",
+} as const;
+
+const TOM_ICONE: Record<Severidade, string> = {
+  alarme: "var(--rs-alarme)",
+  atencao: "var(--rs-atencao)",
+  processo: "var(--rs-processo)",
+  normal: "var(--rs-tinta-3)",
+};
 
 /**
  * Os cartões de leitura. Cada um é uma peça fechada, e o rótulo reserva duas
@@ -41,7 +78,24 @@ export function FaixaLeituras({ itens }: { itens: Leitura[] }) {
     <div className="rs-cartoes rs-reassenta">
       {itens.map((i) => (
         <div key={i.rotulo} className="rs-cartao">
-          <p className="rs-rotulo">{i.rotulo}</p>
+          <p className="rs-rotulo rs-cartao__topo">
+            {i.icone ? (
+              <svg
+                aria-hidden
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                stroke={TOM_ICONE[i.tom ?? "normal"]}
+                strokeWidth="1.6"
+                strokeLinecap="square"
+                strokeLinejoin="miter"
+              >
+                <path d={ICONES[i.icone]} />
+              </svg>
+            ) : null}
+            <span>{i.rotulo}</span>
+          </p>
           <p className="rs-leitura">
             {i.valor}
             {i.unidade ? <span className="rs-unidade">{i.unidade}</span> : null}

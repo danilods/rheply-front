@@ -634,7 +634,9 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
 
 .rs-cartoes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
+  /* 260px é o que faz oito cartões caírem em 4+4 tanto em 1440 quanto em 1600,
+     em vez de 7+1 com um órfão. Rótulo comprido cabe sem cortar. */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: calc(var(--rs-u) * 3);
 }
 .rs-cartao {
@@ -668,3 +670,13 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
 @media (max-width: 720px) {
   .rs-abas > a { padding: 10px 12px; }
 }
+
+/* O ícone divide a linha com o rótulo e nunca empurra o número: a linha de
+   base dos cartões vizinhos tem de continuar batendo. */
+.rs-cartao__topo {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+.rs-cartao__topo svg { flex: none; margin-top: -1px; }
+.rs-cartao__topo span { min-width: 0; overflow-wrap: break-word; }

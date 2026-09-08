@@ -103,6 +103,25 @@ export function CorpoSinoptico({
       6,
     );
 
+    /* Leitura de superintendência: a primeira pergunta de quem cobra não é
+       "quantas vagas", é "qual gerência está segurando". Aqui cada gerência
+       aparece com o que tem em aberto, o que já passou do prazo e há quanto
+       tempo — na mesma linha, sem precisar cruzar telas. */
+    const gerencias = Array.from(new Set(abertas.map((v) => v.gerencia).filter(Boolean)));
+    const porGerencia = gerencias
+      .map((g) => {
+        const doGrupo = abertas.filter((v) => v.gerencia === g);
+        const atrasadasDoGrupo = doGrupo.filter(vagaAtrasada);
+        return {
+          k: g,
+          posicoes: doGrupo.reduce((t, v) => t + (v.posAbertas ?? 0), 0),
+          vagas: doGrupo.length,
+          atrasadas: atrasadasDoGrupo.length,
+          espera: mediana(nums(doGrupo, "aging")),
+        };
+      })
+      .sort((a, b) => b.posicoes - a.posicoes);
+
     const serieAceites = porMes(contr, "mes");
     const temposPosicao = nums(contr, "tmPosicao");
     // Quantas vezes o mesmo posto, na mesma filial, precisou ser reposto.
@@ -118,7 +137,7 @@ export function CorpoSinoptico({
     );
 
     return {
-      abertas, contr, funil, nos, atrasadas, congeladas, congeladasNoPrazo, noPrazo,
+      abertas, contr, funil, nos, porGerencia, atrasadas, congeladas, congeladasNoPrazo, noPrazo,
       esperandoGestor, filaGestor,
       noShow, porPraca, posicaoDia, paradoPorFilial, serieAceites, temposPosicao, reaberturas,
     };
@@ -164,12 +183,14 @@ export function CorpoSinoptico({
   const leituras = [
     {
       rotulo: "Requisições abertas",
+      icone: "requisicao" as const,
       valor: fmtN(new Set(c.abertas.map((v) => v.req || v.codigo)).size),
       unidade: "requisições",
       contexto: `${fmtN(c.abertas.length)} vagas no quadro`,
     },
     {
       rotulo: "Posições abertas",
+      icone: "posicao" as const,
       valor: fmtN(sum(c.abertas, "posAbertas")),
       unidade: "posições",
       contexto: `${fmtN(sum(c.abertas, "posFechadas"))} já fechadas nessas vagas`,
@@ -178,6 +199,8 @@ export function CorpoSinoptico({
       // Itens 3 e 5: o tempo real da vaga é da aprovação até a movimentação
       // para contratação. Não é a soma das etapas, nem o tempo desde a criação.
       rotulo: "Tempo médio da vaga",
+      icone: "relogio" as const,
+      tom: (mediana(c.temposPosicao) ?? 0) > 44 ? ("atencao" as const) : ("normal" as const),
       valor: fmtN(mediana(c.temposPosicao)),
       unidade: "d mediana",
       contexto: `p90 ${fmtN(percentil(c.temposPosicao, 0.9))} d · aprovação → movimentação${semGerencia}`,
@@ -186,23 +209,29 @@ export function CorpoSinoptico({
       // Item 4: os dois tempos de etapa entram como indicador, não como o
       // tempo da vaga — somá-los daria um número que não existe no processo.
       rotulo: "Indicador O&R",
+      icone: "etapa" as const,
       valor: fmtN(mediana(nums(c.abertas, "tmOR"))),
       unidade: "d mediana",
       contexto: "criação até a aprovação",
     },
     {
       rotulo: "Indicador R&S",
+      icone: "etapa" as const,
       valor: fmtN(mediana(nums(c.abertas, "tmRS"))),
       unidade: "d mediana",
       contexto: "aprovação até a publicação",
     },
     {
       rotulo: "Não comparecimento",
+      icone: "ausencia" as const,
+      tom: (c.noShow ?? 0) > LIMIARES.noShow ? ("alarme" as const) : ("normal" as const),
       valor: fmtPct(c.noShow),
       contexto: `teto de mercado 10% · pior localidade ${c.porPraca[0]?.k ?? "—"}`,
     },
     {
       rotulo: "Aguardando o gestor",
+      icone: "pessoa" as const,
+      tom: "processo" as const,
       valor: fmtN(c.esperandoGestor.length),
       unidade: "candidatos",
       contexto: c.filaGestor[0]
@@ -211,6 +240,8 @@ export function CorpoSinoptico({
     },
     {
       rotulo: "Espera acumulada",
+      icone: "espera" as const,
+      tom: "atencao" as const,
       valor: fmtN(c.posicaoDia),
       unidade: "dias somados",
       contexto: `média de ${fmtN(sum(c.abertas, "posAbertas") ? c.posicaoDia / sum(c.abertas, "posAbertas") : null)} dias por posição`,
@@ -232,6 +263,48 @@ export function CorpoSinoptico({
       <div className="rs-c12">
         <FaixaLeituras itens={leituras} />
       </div>
+
+      {c.porGerencia.length > 1 ? (
+        <section className="rs-placa rs-c12">
+          <h3 className="rs-cabeca">Por gerência</h3>
+          <p className="rs-sub">
+            Onde o quadro está aberto e quanto já passou do prazo. É por aqui que a cobrança
+            começa: filial e área respondem por operação, gerência responde por gente.
+          </p>
+          <div data-rolagem style={{ overflowX: "auto" }}>
+            <table className="rs-tabela">
+              <thead>
+                <tr>
+                  {["Gerência", "Posições abertas", "Vagas", "Fora do prazo", "Espera mediana"].map((h, i) => (
+                    <th key={h} scope="col" className={i ? "rs-num-col" : ""}>
+                      <button type="button" tabIndex={-1} style={{ cursor: "default" }}>
+                        {h}
+                      </button>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {c.porGerencia.map((g) => (
+                  <tr key={g.k}>
+                    <td className="rs-quebra">{g.k}</td>
+                    <td className="rs-num-col">{fmtN(g.posicoes)}</td>
+                    <td className="rs-num-col">{fmtN(g.vagas)}</td>
+                    <td className="rs-num-col">
+                      {g.atrasadas ? (
+                        <Etiqueta severidade="alarme">{fmtN(g.atrasadas)}</Etiqueta>
+                      ) : (
+                        <span style={{ color: "var(--rs-tinta-3)" }}>—</span>
+                      )}
+                    </td>
+                    <td className="rs-num-col">{fmtN(g.espera)} d</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
 
       <Placa
         titulo="Funil, da abordagem à carta oferta"

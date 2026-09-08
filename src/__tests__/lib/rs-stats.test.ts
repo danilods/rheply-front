@@ -172,3 +172,30 @@ describe("mesMenos", () => {
     expect(mesMenos("2026-08", 0)).toBe("2026-08");
   });
 });
+
+describe("maiores, o balde Outros", () => {
+  it("com limite 1 devolve o maior, não a soma de todos rotulada como Outros", () => {
+    // `slice(limite - 1)` com limite 1 é `slice(0)`: colapsava a lista inteira
+    // num único balde, e quem pedia o maior recebia o total com o rótulo errado.
+    const m = new Map([
+      ["jan", 10],
+      ["fev", 30],
+      ["mar", 20],
+    ]);
+    expect(maiores(m, 1)).toEqual([{ k: "fev", v: 30 }]);
+  });
+
+  it("mantém Outros quando o limite comporta mais de uma linha", () => {
+    const m = new Map([
+      ["a", 10],
+      ["b", 5],
+      ["c", 3],
+      ["d", 2],
+    ]);
+    expect(maiores(m, 3)).toEqual([
+      { k: "a", v: 10 },
+      { k: "b", v: 5 },
+      { k: "Outros", v: 5 },
+    ]);
+  });
+});

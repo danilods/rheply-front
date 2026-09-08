@@ -75,7 +75,7 @@ export default function LayoutAtracaoSelecao({ children }: { children: ReactNode
         }}
       >
         <div>
-          <h1 className="rs-titulo">Atração e Seleção</h1>
+          <h1 className="rs-titulo">Mapa de Vagas · Equatorial Serviços</h1>
           <p className="rs-prosa" style={{ margin: "6px 0 0", color: "var(--rs-tinta-2)" }}>
             O que saiu do prazo, há quantos dias e de quem é. Os filtros valem para
             todas as telas ao mesmo tempo.
