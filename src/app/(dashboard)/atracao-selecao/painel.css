@@ -132,11 +132,10 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
 .rs-rotulo {
   font-family: var(--rs-quadro-fonte);
   font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.01em;
   color: var(--rs-tinta-2);
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .rs-titulo {
@@ -273,8 +272,7 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   font-family: var(--rs-quadro-fonte);
   font-weight: 600;
   font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   color: var(--rs-tinta-2);
 }
@@ -382,8 +380,7 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   font-family: var(--rs-quadro-fonte);
   font-weight: 600;
   font-size: 12px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--rs-tinta-3);
   white-space: nowrap;
 }
@@ -447,8 +444,7 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   font-family: var(--rs-quadro-fonte);
   font-weight: 600;
   font-size: 13px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--rs-tinta-2);
   list-style: none;
   display: flex;
@@ -584,8 +580,7 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   font-family: var(--rs-quadro-fonte);
   font-weight: 500;
   font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   line-height: 1.2;
   color: var(--rs-tinta-3);
   overflow-wrap: break-word;
@@ -612,7 +607,7 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
     transform: none !important;
     text-align: left !important;
     font-size: 12px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.01em;
     line-height: 1.3;
   }
   .rs-unifilar__rotulo::before {
@@ -680,3 +675,18 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
 }
 .rs-cartao__topo svg { flex: none; margin-top: -1px; }
 .rs-cartao__topo span { min-width: 0; overflow-wrap: break-word; }
+
+/* O total do gráfico: fio acima, número tabular à direita. Fica colado no
+   instrumento porque responde sobre ele, não sobre a placa inteira. */
+.rs-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: calc(var(--rs-u) * 3);
+  margin: calc(var(--rs-u) * 3) 0 0;
+  padding-top: calc(var(--rs-u) * 2);
+  border-top: 1px solid var(--rs-fio);
+  font-size: 14px;
+  color: var(--rs-tinta-2);
+}
+.rs-total b { color: var(--rs-tinta); font-weight: 600; }

@@ -91,7 +91,7 @@ export function Portaria({ aoEntrar }: { aoEntrar: (token: string) => void }) {
         style={{ width: "100%", maxWidth: 460, borderTop: "2px solid var(--rs-fio-forte)" }}
       >
         <h1 id="rs-portaria-titulo" className="rs-cabeca" style={{ marginTop: 0 }}>
-          Mapa de Vagas · Equatorial Serviços
+          Mapa de Vagas
         </h1>
         <p className="rs-sub">
           Digite o código de seis dígitos que você recebeu. Ele vale por tempo limitado

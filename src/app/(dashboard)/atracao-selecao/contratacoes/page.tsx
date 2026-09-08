@@ -49,8 +49,8 @@ export default function PaginaContratacoes() {
 
   const leituras = [
     { rotulo: "Posições fechadas", valor: fmtN(vis.length), contexto: `${fmtN(new Set(vis.map((c) => c.idVaga)).size)} vagas distintas` },
-    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(tempos)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(tempos, 0.9))} d · ${fmtPct(tempos.length ? tempos.filter((v) => v <= 30).length / tempos.length : null)} em até 30 d` },
-    { rotulo: "Aceite até a admissão", valor: fmtN(mediana(admissao)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(admissao, 0.9))} d · janela da documentação` },
+    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(tempos)), unidade: "dias", contexto: `na metade dos casos · da aprovação à movimentação · 9 em cada 10 em até ${fmtN(percentil(tempos, 0.9))} d` },
+    { rotulo: "Aceite até a admissão", valor: fmtN(mediana(admissao)), unidade: "dias", contexto: `p90 ${fmtN(percentil(admissao, 0.9))} d · janela da documentação` },
     { rotulo: "Salário contratado", valor: fmtBRL(mediana(salarios)), contexto: piso !== null ? `${fmtPct(salarios.filter((v) => v === piso).length / salarios.length)} no piso da amostra` : "" },
     { rotulo: "Mulheres", valor: fmtPct(proporcao(vis, (c) => c.genero === "Feminino")), contexto: `${fmtN(mulheres)} contratações` },
     { rotulo: "Pessoas com deficiência", valor: fmtN(pcd), contexto: `${fmtPct(proporcao(vis, (c) => c.pcd))} das admissões · a cota é sobre o quadro` },
@@ -111,7 +111,7 @@ export default function PaginaContratacoes() {
     if (admissao.length) {
       achados.push(
         <>
-          Entre aceitar a carta e ser admitido passam <Forte>{fmtN(mediana(admissao))} dias medianos</Forte> (p90 de {fmtN(percentil(admissao, 0.9))}). É a janela em que aviso prévio, exame admissional e documentação derrubam candidatos já aprovados.
+          Entre aceitar a carta e ser admitido passam <Forte>{fmtN(mediana(admissao))} dias na metade dos casos</Forte> (9 em cada 10 em até {fmtN(percentil(admissao, 0.9))}). É a janela em que aviso prévio, exame admissional e documentação derrubam candidatos já aprovados.
         </>,
       );
     }

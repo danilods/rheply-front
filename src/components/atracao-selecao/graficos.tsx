@@ -85,6 +85,7 @@ export function Placa({
   children,
   tabela,
   legenda,
+  total,
 }: {
   titulo: string;
   nota?: string;
@@ -92,6 +93,12 @@ export function Placa({
   children: ReactNode;
   tabela?: TabelaGemea;
   legenda?: Array<{ nome: string; cor: string }>;
+  /**
+   * O que as barras somam. Um gráfico responde a proporção; o total responde
+   * "de quantos estamos falando", e sem ele o leitor precisa somar de cabeça
+   * para saber se a fatia grande é grande de verdade.
+   */
+  total?: { rotulo: string; valor: ReactNode };
 }) {
   return (
     <section className={`rs-placa ${span}`}>
@@ -102,6 +109,13 @@ export function Placa({
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 0 }}>
         {children}
       </div>
+
+      {total ? (
+        <p className="rs-total">
+          <span>{total.rotulo}</span>
+          <b className="rs-num">{total.valor}</b>
+        </p>
+      ) : null}
 
       {legenda?.length ? (
         <ul className="rs-legenda">
@@ -431,7 +445,7 @@ export function Colunas({
                 onFocus={mostrar(d.k, fmtN(d.v))}
                 onBlur={esconder}
               />
-              {rotularTodas || d.v === maior || eAgora ? (
+              {rotularTodas || eAgora || vaga > 26 || d.v === maior ? (
                 <text className="rs-t-valor" x={x + wCol / 2} y={y - 6} textAnchor="middle">
                   {fmtN(d.v)}
                 </text>

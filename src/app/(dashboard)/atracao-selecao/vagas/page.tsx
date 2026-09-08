@@ -78,10 +78,10 @@ export default function PaginaVagas() {
     // contratação. Nestas, que ainda não fecharam, o relógio corre até hoje —
     // é a mesma conta da planilha (TM FECHAMENTO), com a data de hoje no lugar
     // da movimentação que ainda não aconteceu.
-    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(agings)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(agings, 0.9))} d · aprovação → hoje · líquido ${fmtN(mediana(nums(vis, "agingLiq")))} d` },
+    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(agings)), unidade: "dias", contexto: `na metade dos casos · da aprovação até hoje · 9 em cada 10 em até ${fmtN(percentil(agings, 0.9))} d` },
     // Item 4: etapas como indicador, nunca somadas ao tempo da vaga.
-    { rotulo: "Indicador O&R", valor: fmtN(mediana(nums(vis, "tmOR"))), unidade: "d mediana", contexto: "criação até a aprovação" },
-    { rotulo: "Indicador R&S", valor: fmtN(mediana(nums(vis, "tmRS"))), unidade: "d mediana", contexto: "aprovação até a publicação" },
+    { rotulo: "Indicador O&R", valor: fmtN(mediana(nums(vis, "tmOR"))), unidade: "dias", contexto: "criação até a aprovação" },
+    { rotulo: "Indicador R&S", valor: fmtN(mediana(nums(vis, "tmRS"))), unidade: "dias", contexto: "aprovação até a publicação" },
     { rotulo: "Inscritos por posição", valor: fmtN(posAbertas ? inscritos / posAbertas : null), contexto: `${fmtN(inscritos)} inscritos no total` },
   ];
 

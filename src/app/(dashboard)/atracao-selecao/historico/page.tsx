@@ -68,7 +68,7 @@ export default function PaginaHistorico() {
 
   const leituras = [
     { rotulo: "Posições fechadas", valor: fmtN(vis.length), contexto: `em ${fmtN(new Set(vis.map((c) => c.codigo)).size)} vagas distintas` },
-    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(tm)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(tm, 0.9))} d · da aprovação ao aceite` },
+    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(tm)), unidade: "dias", contexto: `na metade dos casos · da aprovação à movimentação · 9 em cada 10 em até ${fmtN(percentil(tm, 0.9))} d` },
     { rotulo: "Mês mais forte", valor: meses_.length ? fmtMes(maiores(contarPor(vis, "mes"), 1)[0]?.k) : "—", contexto: `${fmtN(maiores(contarPor(vis, "mes"), 1)[0]?.v)} posições` },
     { rotulo: "Recrutamento interno", valor: fmtPct(proporcao(vis, (c) => c.interno)), contexto: `${fmtN(vis.filter((c) => c.interno).length)} das ${fmtN(vis.length)}` },
     { rotulo: "Salário contratado", valor: fmtBRL(mediana(nums(vis, "salContr"))), contexto: "mediana do período" },
@@ -92,7 +92,7 @@ export default function PaginaHistorico() {
     if (tm.length) {
       achados.push(
         <>
-          O tempo médio da vaga é de <Forte>{fmtN(mediana(tm))} dias medianos e p90 de {fmtN(percentil(tm, 0.9))}</Forte>,
+          O tempo médio da vaga é de <Forte>{fmtN(mediana(tm))} dias na metade dos casos, e 9 em cada 10 fecham em até {fmtN(percentil(tm, 0.9))}</Forte>,
           contados da aprovação da O&amp;R até a movimentação para contratação. É o tempo real do
           ciclo, não a soma de etapas.
         </>,

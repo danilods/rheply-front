@@ -94,10 +94,12 @@ export function CorpoSinoptico({
       }))
       .sort((a, b) => b.v - a.v);
 
-    const posicaoDia = abertas.reduce((t, v) => t + v.posAbertas * (v.aging ?? 0), 0);
+    /* Posição-dia multiplicava posições por dias e devolvia um número grande
+       que ninguém sabe interpretar. O que o gestor decide olhando é quantas
+       posições estão paradas em cada filial e há quanto tempo. */
     const paradoPorFilial = maiores(
       abertas.reduce((m, v) => {
-        m.set(v.filial, (m.get(v.filial) ?? 0) + v.posAbertas * (v.aging ?? 0));
+        m.set(v.filial, (m.get(v.filial) ?? 0) + (v.posAbertas ?? 0));
         return m;
       }, new Map<string, number>()),
       6,
@@ -139,7 +141,7 @@ export function CorpoSinoptico({
     return {
       abertas, contr, funil, nos, porGerencia, atrasadas, congeladas, congeladasNoPrazo, noPrazo,
       esperandoGestor, filaGestor,
-      noShow, porPraca, posicaoDia, paradoPorFilial, serieAceites, temposPosicao, reaberturas,
+      noShow, porPraca, paradoPorFilial, serieAceites, temposPosicao, reaberturas,
     };
   }, [recorte]);
 
@@ -202,8 +204,8 @@ export function CorpoSinoptico({
       icone: "relogio" as const,
       tom: (mediana(c.temposPosicao) ?? 0) > 44 ? ("atencao" as const) : ("normal" as const),
       valor: fmtN(mediana(c.temposPosicao)),
-      unidade: "d mediana",
-      contexto: `p90 ${fmtN(percentil(c.temposPosicao, 0.9))} d · aprovação → movimentação${semGerencia}`,
+      unidade: "dias",
+      contexto: `na metade dos casos · da aprovação à movimentação · 9 em cada 10 em até ${fmtN(percentil(c.temposPosicao, 0.9))} d${semGerencia}`,
     },
     {
       // Item 4: os dois tempos de etapa entram como indicador, não como o
@@ -211,14 +213,14 @@ export function CorpoSinoptico({
       rotulo: "Indicador O&R",
       icone: "etapa" as const,
       valor: fmtN(mediana(nums(c.abertas, "tmOR"))),
-      unidade: "d mediana",
+      unidade: "dias",
       contexto: "criação até a aprovação",
     },
     {
       rotulo: "Indicador R&S",
       icone: "etapa" as const,
       valor: fmtN(mediana(nums(c.abertas, "tmRS"))),
-      unidade: "d mediana",
+      unidade: "dias",
       contexto: "aprovação até a publicação",
     },
     {
@@ -229,22 +231,16 @@ export function CorpoSinoptico({
       contexto: `teto de mercado 10% · pior localidade ${c.porPraca[0]?.k ?? "—"}`,
     },
     {
-      rotulo: "Aguardando o gestor",
+      // O rótulo antigo não dizia o que o número era. São candidatos que já
+      // passaram pelo R&S e estão parados esperando o gestor decidir.
+      rotulo: "Candidatos parados com o gestor",
       icone: "pessoa" as const,
       tom: "processo" as const,
       valor: fmtN(c.esperandoGestor.length),
       unidade: "candidatos",
       contexto: c.filaGestor[0]
-        ? `${fmtN(c.filaGestor[0].v)} deles com ${c.filaGestor[0].k}`
+        ? `já passaram pelo R&S e esperam decisão · ${fmtN(c.filaGestor[0].v)} com ${c.filaGestor[0].k}`
         : "sem fila aguardando decisão",
-    },
-    {
-      rotulo: "Espera acumulada",
-      icone: "espera" as const,
-      tom: "atencao" as const,
-      valor: fmtN(c.posicaoDia),
-      unidade: "dias somados",
-      contexto: `média de ${fmtN(sum(c.abertas, "posAbertas") ? c.posicaoDia / sum(c.abertas, "posAbertas") : null)} dias por posição`,
     },
   ];
 
@@ -307,8 +303,8 @@ export function CorpoSinoptico({
       ) : null}
 
       <Placa
-        titulo="Funil, da abordagem à carta oferta"
-        nota="A espessura carrega o volume. O trecho aceso é onde mais se perde. Etapa derivada do status e do motivo, porque as datas de etapa da planilha estão vazias."
+        titulo="Funil do processo seletivo"
+        nota="De quantos foram abordados até quantos foram aprovados. O trecho aceso é onde mais se perde."
         span="rs-c7"
         tabela={tabelaUnifilar(c.nos)}
       >
@@ -366,6 +362,7 @@ export function CorpoSinoptico({
         nota="Faltas e sumiços sobre os candidatos abordados na localidade."
         span="rs-c6"
         tabela={tabelaBarras(c.porPraca, "Localidade", "Não comparecimento", fmtN, "%")}
+        total={{ rotulo: "Candidatos abordados", valor: fmtN(c.funil.length) }}
       >
         <Barras
           dados={c.porPraca}
@@ -378,22 +375,24 @@ export function CorpoSinoptico({
 
       <Placa
         titulo="Onde as vagas estão paradas"
-        nota="Posição-dia: posições abertas multiplicadas pelos dias desde a aprovação."
+        nota="Posições ainda abertas em cada filial."
         span="rs-c6"
-        tabela={tabelaBarras(c.paradoPorFilial, "Filial", "Posição-dia")}
+        tabela={tabelaBarras(c.paradoPorFilial, "Filial", "Posições abertas")}
+        total={{ rotulo: "Posições abertas no total", valor: fmtN(c.paradoPorFilial.reduce((t, x) => t + x.v, 0)) }}
       >
         <Barras dados={c.paradoPorFilial} />
       </Placa>
 
       <Placa
-        titulo="Aceites de carta oferta por mês"
+        titulo="Posições fechadas por mês"
         nota="A série inteira, não a comparação com o mês anterior: o volume vem em ondas."
         span="rs-c7"
         tabela={tabelaBarras(
           c.serieAceites.map((x) => ({ k: fmtMes(x.k), v: x.v })),
           "Mês",
-          "Aceites",
+          "Posições fechadas",
         )}
+        total={{ rotulo: "Posições fechadas no período", valor: fmtN(c.serieAceites.reduce((t, x) => t + x.v, 0)) }}
       >
         <Colunas
           dados={c.serieAceites.map((x) => ({ k: fmtMes(x.k), v: x.v }))}
@@ -431,8 +430,8 @@ export function CorpoSinoptico({
               d: `De ${fmtN(c.nos[0]?.v)} candidatos abordados, ${fmtN(c.nos[c.nos.length - 1]?.v)} chegaram à carta oferta — ${fmtPct((c.nos[c.nos.length - 1]?.v ?? 0) / (c.nos[0]?.v || 1))} do topo. A maior queda está no meio do funil, não na entrada: investir em mais atração rende menos que consertar o comparecimento e a decisão do gestor.`,
             },
             {
-              t: "A espera está concentrada",
-              d: `As três filiais com mais posições paradas somam ${fmtPct(c.paradoPorFilial.slice(0, 3).reduce((t, x) => t + x.v, 0) / (c.posicaoDia || 1))} de toda a espera acumulada. Atacar ${c.paradoPorFilial.slice(0, 3).map((p) => p.k).join(", ")} resolve mais que qualquer ação distribuída por igual.`,
+              t: "O problema está concentrado",
+              d: `As três filiais com mais posições paradas somam ${fmtPct(c.paradoPorFilial.slice(0, 3).reduce((t, x) => t + x.v, 0) / (sum(c.abertas, "posAbertas") || 1))} de tudo que está aberto. Atacar ${c.paradoPorFilial.slice(0, 3).map((p) => p.k).join(", ")} resolve mais que qualquer ação distribuída por igual.`,
             },
             {
               t: "As mesmas posições voltam a abrir",

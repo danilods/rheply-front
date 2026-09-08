@@ -86,10 +86,7 @@ export default function LayoutPainelPublico({ children }: { children: ReactNode 
         }}
       >
         <div>
-          <h1 className="rs-titulo">Mapa de Vagas · Equatorial Serviços</h1>
-          <p className="rs-prosa" style={{ margin: "6px 0 0", color: "var(--rs-tinta-2)" }}>
-            O que saiu do prazo, há quantos dias e de quem é. Somente leitura.
-          </p>
+          <h1 className="rs-titulo">Mapa de Vagas</h1>
         </div>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
           {dados ? (
