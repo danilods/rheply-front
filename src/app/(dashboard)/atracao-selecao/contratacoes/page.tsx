@@ -31,7 +31,7 @@ export default function PaginaContratacoes() {
       aplicarFiltros(
         todas,
         filtros,
-        { periodo: "mes", filial: "filial", cargo: "vaga", recrutador: "recrutador", gestor: "gestor" },
+        { periodo: "mes", status: "depto", filial: "filial", cargo: "vaga", recrutador: "recrutador", gestor: "gestor" },
         mesMaximo,
       ),
     [todas, filtros, mesMaximo],
@@ -48,8 +48,8 @@ export default function PaginaContratacoes() {
   const mulheres = vis.filter((c) => c.genero === "Feminino").length;
 
   const leituras = [
-    { rotulo: "Contratações", valor: fmtN(vis.length), contexto: `${fmtN(new Set(vis.map((c) => c.idVaga)).size)} vagas distintas` },
-    { rotulo: "Tempo de posição", valor: fmtN(mediana(tempos)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(tempos, 0.9))} d · ${fmtPct(tempos.length ? tempos.filter((v) => v <= 30).length / tempos.length : null)} em até 30 d` },
+    { rotulo: "Posições fechadas", valor: fmtN(vis.length), contexto: `${fmtN(new Set(vis.map((c) => c.idVaga)).size)} vagas distintas` },
+    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(tempos)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(tempos, 0.9))} d · ${fmtPct(tempos.length ? tempos.filter((v) => v <= 30).length / tempos.length : null)} em até 30 d` },
     { rotulo: "Aceite até a admissão", valor: fmtN(mediana(admissao)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(admissao, 0.9))} d · janela da documentação` },
     { rotulo: "Salário contratado", valor: fmtBRL(mediana(salarios)), contexto: piso !== null ? `${fmtPct(salarios.filter((v) => v === piso).length / salarios.length)} no piso da amostra` : "" },
     { rotulo: "Mulheres", valor: fmtPct(proporcao(vis, (c) => c.genero === "Feminino")), contexto: `${fmtN(mulheres)} contratações` },
@@ -146,6 +146,7 @@ export default function PaginaContratacoes() {
       <Regua
         meses={meses}
         campos={[
+          { chave: "status", rotulo: "Departamento", opcoes: opcoesDe(todas, "depto") },
           { chave: "filial", rotulo: "Filial", opcoes: opcoesDe(todas, "filial") },
           { chave: "cargo", rotulo: "Vaga", opcoes: opcoesDe(todas, "vaga") },
           { chave: "recrutador", rotulo: "Recrutador(a)", opcoes: opcoesDe(todas, "recrutador") },

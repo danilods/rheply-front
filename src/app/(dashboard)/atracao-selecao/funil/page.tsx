@@ -47,7 +47,7 @@ export default function PaginaFunil() {
       aplicarFiltros(
         todas,
         filtros,
-        { periodo: "mes", praca: "localidade", cargo: "posicao", gestor: "gestor", desfecho: "desfecho" },
+        { periodo: "mes", gerencia: "gerencia", status: "status", praca: "localidade", cargo: "posicao", gestor: "gestor", desfecho: "desfecho" },
         mesMaximo,
       ),
     [todas, filtros, mesMaximo],
@@ -166,6 +166,8 @@ export default function PaginaFunil() {
       <Regua
         meses={meses}
         campos={[
+          { chave: "gerencia", rotulo: "Gerência", opcoes: opcoesDe(todas, "gerencia") },
+          { chave: "status", rotulo: "Status", opcoes: opcoesDe(todas, "status") },
           { chave: "praca", rotulo: "Localidade", opcoes: opcoesDe(todas, "localidade") },
           { chave: "cargo", rotulo: "Posição", opcoes: opcoesDe(todas, "posicao") },
           { chave: "gestor", rotulo: "Gestor(a)", opcoes: opcoesDe(todas, "gestor") },

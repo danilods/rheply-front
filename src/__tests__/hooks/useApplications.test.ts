@@ -1,18 +1,18 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock the candidate API
-vi.mock('@/lib/api-candidate', () => ({
-  candidateApi: {
-    getApplications: vi.fn(),
-    getApplicationById: vi.fn(),
-    withdrawApplication: vi.fn(),
-    applyToJob: vi.fn(),
-  },
-}));
+// Mock API functions for testing
+const mockCandidateApi = {
+  getApplications: vi.fn(),
+  getApplicationById: vi.fn(),
+  withdrawApplication: vi.fn(),
+  applyToJob: vi.fn(),
+};
 
-// Import the mock
-import { candidateApi } from '@/lib/api-candidate';
+// Mock the candidate API module
+vi.mock('@/lib/api-candidate', () => ({
+  candidateApiClient: mockCandidateApi,
+}));
 
 // Simple hook implementation for testing
 const useApplications = () => {
@@ -26,7 +26,7 @@ const useApplications = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await candidateApi.getApplications({ page: pageNum });
+      const response = await mockCandidateApi.getApplications({ page: pageNum });
       setApplications(response.items);
       setTotalPages(response.totalPages);
       setPage(pageNum);
@@ -39,7 +39,7 @@ const useApplications = () => {
 
   const withdrawApplication = React.useCallback(async (applicationId: string) => {
     try {
-      await candidateApi.withdrawApplication(applicationId);
+      await mockCandidateApi.withdrawApplication(applicationId);
       setApplications((prev) =>
         prev.map((app: unknown) =>
           (app as { id: string }).id === applicationId
@@ -56,7 +56,7 @@ const useApplications = () => {
 
   const applyToJob = React.useCallback(async (jobId: string, coverLetter?: string) => {
     try {
-      const newApplication = await candidateApi.applyToJob(jobId, coverLetter);
+      const newApplication = await mockCandidateApi.applyToJob(jobId, coverLetter);
       setApplications((prev) => [newApplication, ...prev]);
       return newApplication;
     } catch (err) {
@@ -109,7 +109,7 @@ describe('useApplications', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (candidateApi.getApplications as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (mockCandidateApi.getApplications as ReturnType<typeof vi.fn>).mockResolvedValue({
       items: mockApplications,
       total: 2,
       page: 1,
@@ -128,7 +128,7 @@ describe('useApplications', () => {
     });
 
     expect(result.current.applications).toHaveLength(2);
-    expect(candidateApi.getApplications).toHaveBeenCalledTimes(1);
+    expect(mockCandidateApi.getApplications).toHaveBeenCalledTimes(1);
   });
 
   it('returns applications data', async () => {
@@ -155,7 +155,7 @@ describe('useApplications', () => {
 
   it('handles errors', async () => {
     const errorMessage = 'Network error';
-    (candidateApi.getApplications as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+    (mockCandidateApi.getApplications as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error(errorMessage)
     );
 
@@ -170,7 +170,7 @@ describe('useApplications', () => {
   });
 
   it('fetches specific page', async () => {
-    (candidateApi.getApplications as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (mockCandidateApi.getApplications as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       items: mockApplications,
       total: 20,
       page: 1,
@@ -184,7 +184,7 @@ describe('useApplications', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    (candidateApi.getApplications as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (mockCandidateApi.getApplications as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       items: [mockApplications[0]],
       total: 20,
       page: 2,
@@ -197,11 +197,11 @@ describe('useApplications', () => {
     });
 
     expect(result.current.page).toBe(2);
-    expect(candidateApi.getApplications).toHaveBeenCalledWith({ page: 2 });
+    expect(mockCandidateApi.getApplications).toHaveBeenCalledWith({ page: 2 });
   });
 
   it('withdraws application successfully', async () => {
-    (candidateApi.withdrawApplication as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (mockCandidateApi.withdrawApplication as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       success: true,
     });
 
@@ -217,7 +217,7 @@ describe('useApplications', () => {
     });
 
     expect(success!).toBe(true);
-    expect(candidateApi.withdrawApplication).toHaveBeenCalledWith('app-1');
+    expect(mockCandidateApi.withdrawApplication).toHaveBeenCalledWith('app-1');
     expect(result.current.applications[0]).toMatchObject({
       id: 'app-1',
       status: 'withdrawn',
@@ -225,7 +225,7 @@ describe('useApplications', () => {
   });
 
   it('handles withdraw application error', async () => {
-    (candidateApi.withdrawApplication as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+    (mockCandidateApi.withdrawApplication as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error('Cannot withdraw')
     );
 
@@ -256,7 +256,7 @@ describe('useApplications', () => {
       },
     };
 
-    (candidateApi.applyToJob as ReturnType<typeof vi.fn>).mockResolvedValueOnce(newApplication);
+    (mockCandidateApi.applyToJob as ReturnType<typeof vi.fn>).mockResolvedValueOnce(newApplication);
 
     const { result } = renderHook(() => useApplications());
 
@@ -268,13 +268,13 @@ describe('useApplications', () => {
       await result.current.applyToJob('job-3', 'Cover letter text');
     });
 
-    expect(candidateApi.applyToJob).toHaveBeenCalledWith('job-3', 'Cover letter text');
+    expect(mockCandidateApi.applyToJob).toHaveBeenCalledWith('job-3', 'Cover letter text');
     expect(result.current.applications).toHaveLength(3);
     expect(result.current.applications[0]).toEqual(newApplication);
   });
 
   it('handles apply to job error', async () => {
-    (candidateApi.applyToJob as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+    (mockCandidateApi.applyToJob as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error('Already applied')
     );
 
@@ -294,7 +294,7 @@ describe('useApplications', () => {
   });
 
   it('provides pagination info', async () => {
-    (candidateApi.getApplications as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (mockCandidateApi.getApplications as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       items: mockApplications,
       total: 25,
       page: 1,

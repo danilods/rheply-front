@@ -243,6 +243,7 @@ export interface PreRegistrationForm {
   // Consentimentos (obrigatórios)
   termosAceitos: boolean;
   lgpdAceito: boolean;
+  rotaTransporteCiente: boolean;
 
   // Configuração do teste
   testDifficulty?: TestDifficulty;

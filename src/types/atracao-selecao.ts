@@ -57,6 +57,8 @@ export interface VagaAberta {
   motivoAbertura: string;
   qualificacao: string;
   congelada: boolean;
+  /** Nível de gerência, canonizado no backend. */
+  gerencia: string;
 }
 
 /** Uma contratação (uma pessoa admitida em uma posição). */
@@ -111,37 +113,6 @@ export interface Candidatura {
   anotacao: string | null;
 }
 
-/** Vaga no histórico completo, aberta ou encerrada. */
-export interface VagaHistorico {
-  codigo: number | string;
-  vaga: string;
-  cargo: string;
-  status: string;
-  filial: string;
-  area: string;
-  recrutador: string;
-  gestor: string;
-  posicoes: number;
-  contratados: number;
-  inscritos: number;
-  motivoReq: string | null;
-  pcd: boolean;
-  tipoRecrut: string;
-  motivoAbertura: string;
-  dtCriacao: string | null;
-  dtFech: string | null;
-  mesCriacao: string | null;
-  mesFech: string | null;
-  trimestre: string | null;
-  /** Dias entre criação e fechamento da vaga. */
-  ttf: number | null;
-  /** Dias entre aprovação e fechamento. */
-  ttfAprov: number | null;
-  tmOR: number | null;
-  tmRS: number | null;
-  salIni: number | null;
-}
-
 /** Conjunto completo entregue pelo backend para o painel. */
 export interface PainelAtracaoSelecao {
   /** Data de referência do snapshot, em AAAA-MM-DD. */
@@ -149,7 +120,6 @@ export interface PainelAtracaoSelecao {
   abertas: VagaAberta[];
   contr: Contratacao[];
   funil: Candidatura[];
-  hist: VagaHistorico[];
 }
 
 /** Resultado de um lote de importação de planilha. */

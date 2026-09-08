@@ -24,7 +24,7 @@ import "./painel.css";
 const ABAS = [
   { href: "/atracao-selecao", rotulo: "Visão geral" },
   { href: "/atracao-selecao/vagas", rotulo: "Vagas em aberto" },
-  { href: "/atracao-selecao/contratacoes", rotulo: "Contratações" },
+  { href: "/atracao-selecao/contratacoes", rotulo: "Posições fechadas" },
   { href: "/atracao-selecao/funil", rotulo: "Funil" },
   { href: "/atracao-selecao/historico", rotulo: "Histórico" },
   { href: "/atracao-selecao/importar", rotulo: "Importar e conferir" },

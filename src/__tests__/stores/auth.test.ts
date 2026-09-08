@@ -10,6 +10,7 @@ vi.resetModules();
 
 // Import the actual store
 import { useCandidateAuthStore } from '@/store/candidate-auth';
+import { UploadStatus, Availability } from '@/types/candidate';
 
 describe('Auth Store', () => {
   beforeEach(() => {
@@ -32,7 +33,7 @@ describe('Auth Store', () => {
         cvUploadState: {
           file: null,
           progress: 0,
-          status: 'idle' as const,
+          status: UploadStatus.IDLE,
           error: undefined,
           uploadedUrl: undefined,
         },
@@ -193,9 +194,10 @@ describe('Auth Store', () => {
       const step1Data = {
         email: 'new@test.com',
         password: 'SecurePass123!',
-        full_name: 'New User',
+        fullName: 'New User',
         phone: '11999999999',
-        cpf: '12345678901',
+        lgpdConsent: true,
+        termsAccepted: true,
       };
 
       const { setStep1Data } = useCandidateAuthStore.getState();
@@ -211,8 +213,8 @@ describe('Auth Store', () => {
 
     it('sets step 2 data', () => {
       const step2Data = {
-        cvUrl: 'https://storage.example.com/cv.pdf',
-        parsedData: { skills: ['Python', 'JavaScript'] },
+        skipped: false,
+        parsedData: { skills: ['Python', 'JavaScript'] } as any,
       };
 
       const { setStep2Data } = useCandidateAuthStore.getState();
@@ -229,8 +231,8 @@ describe('Auth Store', () => {
     it('sets step 3 data', () => {
       const step3Data = {
         areasOfInterest: ['Backend', 'DevOps'],
-        salaryExpectation: { min: 8000, max: 12000 },
-        availability: 'immediate',
+        salaryExpectation: { min: 8000, max: 12000, currency: 'BRL' },
+        availability: Availability.IMMEDIATE,
         openToRelocation: true,
         receiveJobAlerts: true,
       };
@@ -327,7 +329,7 @@ describe('Auth Store', () => {
             currentStep: 2,
             totalSteps: 3,
             completedSteps: [1],
-            stepData: { step1: { email: 'test@test.com' } },
+            stepData: { step1: { email: 'test@test.com', fullName: 'Test', phone: '123', password: 'pass', lgpdConsent: true, termsAccepted: true } },
           },
           parsedCVData: { skills: ['Python'] } as any,
         });

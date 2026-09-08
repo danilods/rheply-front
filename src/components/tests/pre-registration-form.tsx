@@ -112,6 +112,9 @@ const preRegistrationSchema = z.object({
   lgpdAceito: z.boolean().refine((val) => val === true, {
     message: "Você deve aceitar os termos da LGPD",
   }),
+  rotaTransporteCiente: z.boolean().refine((val) => val === true, {
+    message: "Você deve confirmar que está ciente sobre a rota de transporte",
+  }),
 
   // Teste
   testDifficulty: z.nativeEnum(TestDifficulty).default(TestDifficulty.MEDIUM),
@@ -153,6 +156,7 @@ export function PreRegistrationFormComponent({
       pcd: false,
       termosAceitos: false,
       lgpdAceito: false,
+      rotaTransporteCiente: false,
       testDifficulty: TestDifficulty.MEDIUM,
       ...defaultValues,
     },
@@ -215,7 +219,7 @@ export function PreRegistrationFormComponent({
       case 5:
         return [];
       case 6:
-        return ["termosAceitos", "lgpdAceito"];
+        return ["termosAceitos", "lgpdAceito", "rotaTransporteCiente"];
       default:
         return [];
     }
@@ -924,6 +928,30 @@ export function PreRegistrationFormComponent({
                           </FormLabel>
                           <FormDescription>
                             Você autoriza o tratamento de seus dados pessoais conforme a LGPD.
+                          </FormDescription>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="rotaTransporteCiente"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            Estou ciente sobre a rota de transporte *
+                          </FormLabel>
+                          <FormDescription>
+                            Declaro estar ciente de que a rota do transporte fornecido pela empresa pode não incluir o meu bairro.
                           </FormDescription>
                         </div>
                         <FormMessage />

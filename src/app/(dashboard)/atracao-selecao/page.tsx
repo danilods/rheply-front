@@ -34,16 +34,20 @@ export default function PaginaSinoptico() {
    * campos que as quatro sabem responder. Recrutador ficou de fora de
    * propósito: o funil não guarda esse campo, e um filtro que recorta três
    * bases e deixa a quarta inteira devolveria um quadro que se contradiz.
+   *
+   * Uma exceção fica declarada: posições fechadas não trazem gerência na
+   * exportação — trazem departamento, que mistura gerências e executivas.
+   * Filtrar por gerência recorta vagas e funil, e não recorta essa base. Em
+   * vez de esconder isso, a tela avisa quando o recorte está parcial.
    */
   const recorte = useMemo(() => {
     if (!dados) return null;
-    const { abertas, contr, funil, hist } = dados;
-    const comum = { filial: "filial", cargo: "vaga", gestor: "gestor" } as const;
+    const { abertas, contr, funil } = dados;
+    const comum = { gerencia: "gerencia", status: "status", filial: "filial", cargo: "vaga", gestor: "gestor" } as const;
     return {
       abertas: aplicarFiltros(abertas, filtros, { periodo: "mesCriacao", ...comum }, mesMaximoDe(abertas, "mesCriacao")),
-      contr: aplicarFiltros(contr, filtros, { periodo: "mes", ...comum }, mesMaximoDe(contr, "mes")),
-      funil: aplicarFiltros(funil, filtros, { periodo: "mes", filial: "localidade", cargo: "posicao", gestor: "gestor" }, mesMaximoDe(funil, "mes")),
-      hist: aplicarFiltros(hist, filtros, { periodo: "mesCriacao", ...comum }, mesMaximoDe(hist, "mesCriacao")),
+      contr: aplicarFiltros(contr, filtros, { periodo: "mes", status: "depto", filial: "filial", cargo: "vaga", gestor: "gestor" }, mesMaximoDe(contr, "mes")),
+      funil: aplicarFiltros(funil, filtros, { periodo: "mes", gerencia: "gerencia", status: "status", filial: "localidade", cargo: "posicao", gestor: "gestor" }, mesMaximoDe(funil, "mes")),
     };
   }, [dados, filtros]);
 
@@ -61,13 +65,20 @@ export default function PaginaSinoptico() {
 
   if (!dados || !recorte) return null;
 
-  const recortado = Boolean(filtros.periodo || filtros.filial || filtros.cargo || filtros.gestor);
+  const recortado = Boolean(
+    filtros.periodo || filtros.gerencia || filtros.status || filtros.filial || filtros.cargo || filtros.gestor,
+  );
+  // Gerência não existe na base de posições fechadas. Quando o recorte usa
+  // gerência, os números vindos dela ficam sem recortar, e a tela diz isso.
+  const recorteParcial = Boolean(filtros.gerencia);
 
   return (
     <>
       <Regua
         meses={meses}
         campos={[
+          { chave: "gerencia", rotulo: "Gerência", opcoes: opcoesDe(dados.abertas, "gerencia") },
+          { chave: "status", rotulo: "Status", opcoes: opcoesDe(dados.abertas, "status") },
           { chave: "filial", rotulo: "Filial", opcoes: opcoesDe(dados.abertas, "filial") },
           { chave: "cargo", rotulo: "Vaga", opcoes: opcoesDe(dados.abertas, "vaga") },
           { chave: "gestor", rotulo: "Gestor(a)", opcoes: opcoesDe(dados.abertas, "gestor") },
@@ -77,7 +88,7 @@ export default function PaginaSinoptico() {
       />
 
       <div style={{ marginTop: 16 }}>
-        <CorpoSinoptico recorte={recorte} qualidade={qualidade} recortado={recortado} interno={!publico} base={base} />
+        <CorpoSinoptico recorte={recorte} qualidade={qualidade} recortado={recortado} recorteParcial={recorteParcial} interno={!publico} base={base} />
       </div>
     </>
   );

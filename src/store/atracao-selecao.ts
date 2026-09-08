@@ -20,8 +20,12 @@ import type { PainelAtracaoSelecao } from "@/types/atracao-selecao";
 
 /** Um recorte aplicado a todas as seções ao mesmo tempo. */
 export interface Filtros {
-  /** "AAAA-MM", ou "p3"/"p6" para os últimos 3 e 6 meses, ou "" para tudo. */
   periodo: string;
+  /** Nível de gerência. O recorte que a superintendência cobra. */
+  gerencia: string;
+  /** Situação da vaga ou do candidato, conforme a tela. */
+  status: string;
+  /** "AAAA-MM", ou "p3"/"p6" para os últimos 3 e 6 meses, ou "" para tudo. */
   filial: string;
   cargo: string;
   recrutador: string;
@@ -32,6 +36,8 @@ export interface Filtros {
 
 export const FILTROS_VAZIOS: Filtros = {
   periodo: "",
+  gerencia: "",
+  status: "",
   filial: "",
   cargo: "",
   recrutador: "",
@@ -128,6 +134,8 @@ export function aplicarFiltros<T>(
   mesMaximo?: string,
 ): T[] {
   const chaves: Array<keyof Filtros> = [
+    "gerencia",
+    "status",
     "filial",
     "cargo",
     "recrutador",

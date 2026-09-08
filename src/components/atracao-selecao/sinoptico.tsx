@@ -25,19 +25,19 @@ import {
 } from "@/lib/rs/metricas";
 import { contarPor, maiores, mediana, nums, percentil, porMes, proporcao, sum } from "@/lib/rs/stats";
 import type { QualidadeDados } from "@/services/atracao-selecao-api";
-import type { Contratacao, Candidatura, VagaAberta, VagaHistorico } from "@/types/atracao-selecao";
+import type { Contratacao, Candidatura, VagaAberta } from "@/types/atracao-selecao";
 
 export interface ConjuntoSinoptico {
   abertas: VagaAberta[];
   contr: Contratacao[];
   funil: Candidatura[];
-  hist: VagaHistorico[];
 }
 
 export function CorpoSinoptico({
   recorte,
   qualidade,
   recortado = false,
+  recorteParcial = false,
   interno = true,
   base = "/atracao-selecao",
 }: {
@@ -45,6 +45,13 @@ export function CorpoSinoptico({
   qualidade?: QualidadeDados | null;
   /** Muda a frase de "base inteira" para "recorte visível". */
   recortado?: boolean;
+  /**
+   * O recorte não alcança todas as bases. Acontece com gerência: a exportação
+   * de posições fechadas não traz o campo, então filtrar por gerência recorta
+   * vagas e funil e deixa aquela base inteira. Dizer isso na tela é o que
+   * separa um número parcial de um número errado.
+   */
+  recorteParcial?: boolean;
   /**
    * Na tela interna há para onde navegar; no link público não há. Mandar quem
    * não tem conta para uma rota autenticada devolve a pessoa ao login e faz o
@@ -56,7 +63,7 @@ export function CorpoSinoptico({
 }) {
   const c = useMemo(() => {
     if (!recorte) return null;
-    const { abertas, contr, funil, hist } = recorte;
+    const { abertas, contr, funil } = recorte;
 
     const cascata = cascataFunil(funil);
     const nos = cascata.map((e, i) => ({
@@ -98,9 +105,12 @@ export function CorpoSinoptico({
 
     const serieAceites = porMes(contr, "mes");
     const temposPosicao = nums(contr, "tmPosicao");
+    // Quantas vezes o mesmo posto, na mesma filial, precisou ser reposto.
+    // Antes isto contava requisições numa base histórica que não existe mais;
+    // agora conta posições efetivamente fechadas, que é o fato observável.
     const reaberturas = maiores(
-      hist.reduce((m, v) => {
-        const k = `${v.vaga} · ${v.filial}`;
+      contr.reduce((m, c) => {
+        const k = `${c.vaga} · ${c.filial}`;
         m.set(k, (m.get(k) ?? 0) + 1);
         return m;
       }, new Map<string, number>()),
@@ -108,7 +118,7 @@ export function CorpoSinoptico({
     );
 
     return {
-      abertas, contr, funil, hist, nos, atrasadas, congeladas, congeladasNoPrazo, noPrazo,
+      abertas, contr, funil, nos, atrasadas, congeladas, congeladasNoPrazo, noPrazo,
       esperandoGestor, filaGestor,
       noShow, porPraca, posicaoDia, paradoPorFilial, serieAceites, temposPosicao, reaberturas,
     };
@@ -148,17 +158,43 @@ export function CorpoSinoptico({
 
   /* ---------------- leituras ---------------- */
 
+  //: Marca as leituras que vêm de posições fechadas, base que não tem gerência.
+  const semGerencia = recorteParcial ? " · não recortado por gerência" : "";
+
   const leituras = [
     {
-      rotulo: "Posições a preencher",
-      valor: fmtN(sum(c.abertas, "posAbertas")),
-      contexto: `em ${fmtN(c.abertas.length)} vagas`,
+      rotulo: "Requisições abertas",
+      valor: fmtN(new Set(c.abertas.map((v) => v.req || v.codigo)).size),
+      unidade: "requisições",
+      contexto: `${fmtN(c.abertas.length)} vagas no quadro`,
     },
     {
-      rotulo: "Tempo de posição",
+      rotulo: "Posições abertas",
+      valor: fmtN(sum(c.abertas, "posAbertas")),
+      unidade: "posições",
+      contexto: `${fmtN(sum(c.abertas, "posFechadas"))} já fechadas nessas vagas`,
+    },
+    {
+      // Itens 3 e 5: o tempo real da vaga é da aprovação até a movimentação
+      // para contratação. Não é a soma das etapas, nem o tempo desde a criação.
+      rotulo: "Tempo médio da vaga",
       valor: fmtN(mediana(c.temposPosicao)),
       unidade: "d mediana",
-      contexto: `p90 ${fmtN(percentil(c.temposPosicao, 0.9))} d · mercado 39 a 44 d`,
+      contexto: `p90 ${fmtN(percentil(c.temposPosicao, 0.9))} d · aprovação → movimentação${semGerencia}`,
+    },
+    {
+      // Item 4: os dois tempos de etapa entram como indicador, não como o
+      // tempo da vaga — somá-los daria um número que não existe no processo.
+      rotulo: "Indicador O&R",
+      valor: fmtN(mediana(nums(c.abertas, "tmOR"))),
+      unidade: "d mediana",
+      contexto: "criação até a aprovação",
+    },
+    {
+      rotulo: "Indicador R&S",
+      valor: fmtN(mediana(nums(c.abertas, "tmRS"))),
+      unidade: "d mediana",
+      contexto: "aprovação até a publicação",
     },
     {
       rotulo: "Não comparecimento",
@@ -319,7 +355,7 @@ export function CorpoSinoptico({
           {[
             {
               t: "O topo do funil não é o problema",
-              d: `São ${fmtN(sum(c.hist, "inscritos"))} inscritos para ${fmtN(sum(c.hist, "contratados"))} contratações, uma conversão de ${fmtPct(sum(c.hist, "contratados") / (sum(c.hist, "inscritos") || 1))} contra 0,5% de referência de mercado. Investir em mais atração rende menos que consertar o comparecimento e a decisão do gestor.`,
+              d: `De ${fmtN(c.nos[0]?.v)} candidatos abordados, ${fmtN(c.nos[c.nos.length - 1]?.v)} chegaram à carta oferta — ${fmtPct((c.nos[c.nos.length - 1]?.v ?? 0) / (c.nos[0]?.v || 1))} do topo. A maior queda está no meio do funil, não na entrada: investir em mais atração rende menos que consertar o comparecimento e a decisão do gestor.`,
             },
             {
               t: "A espera está concentrada",
@@ -327,7 +363,7 @@ export function CorpoSinoptico({
             },
             {
               t: "As mesmas posições voltam a abrir",
-              d: `${c.reaberturas[0]?.k} teve ${fmtN(c.reaberturas[0]?.v)} requisições no histórico, e ${fmtPct(proporcao(c.hist, (v) => v.motivoReq === "Substituição de pessoal"))} das aberturas são substituição. Enquanto a permanência não entrar na conta, o time repõe o mesmo posto.`,
+              d: `${c.reaberturas[0]?.k} teve ${fmtN(c.reaberturas[0]?.v)} posições fechadas no período, e ${fmtPct(proporcao(c.contr, (v) => v.motivoReq === "Substituição de pessoal"))} das aberturas são substituição. Enquanto a permanência não entrar na conta, o time repõe o mesmo posto.`,
             },
             {
               t: "Não dá para dizer qual canal funciona",

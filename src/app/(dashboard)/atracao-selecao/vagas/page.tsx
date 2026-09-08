@@ -50,7 +50,7 @@ export default function PaginaVagas() {
       aplicarFiltros(
         todas,
         filtros,
-        { periodo: "mesCriacao", filial: "filial", cargo: "vaga", recrutador: "recrutador", gestor: "gestor" },
+        { periodo: "mesCriacao", gerencia: "gerencia", status: "status", filial: "filial", cargo: "vaga", recrutador: "recrutador", gestor: "gestor" },
         mesMaximo,
       ),
     [todas, filtros, mesMaximo],
@@ -72,9 +72,16 @@ export default function PaginaVagas() {
   ];
 
   const leituras = [
-    { rotulo: "Posições a preencher", valor: fmtN(posAbertas), contexto: `de ${fmtN(sum(vis, "posicoes"))} solicitadas` },
-    { rotulo: "Aberta desde a aprovação", valor: fmtN(mediana(agings)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(agings, 0.9))} d · líquido ${fmtN(mediana(nums(vis, "agingLiq")))} d` },
-    { rotulo: "Criação até publicação", valor: fmtN(mediana(nums(vis, "tmCiclo"))), unidade: "d mediana", contexto: `O&R ${fmtN(mediana(nums(vis, "tmOR")))} d + R&S ${fmtN(mediana(nums(vis, "tmRS")))} d` },
+    { rotulo: "Requisições abertas", valor: fmtN(new Set(vis.map((v) => v.req || v.codigo)).size), unidade: "requisições", contexto: `${fmtN(vis.length)} vagas no quadro` },
+    { rotulo: "Posições abertas", valor: fmtN(posAbertas), contexto: `de ${fmtN(sum(vis, "posicoes"))} solicitadas` },
+    // Item 5: o tempo da vaga conta da aprovação até a movimentação para
+    // contratação. Nestas, que ainda não fecharam, o relógio corre até hoje —
+    // é a mesma conta da planilha (TM FECHAMENTO), com a data de hoje no lugar
+    // da movimentação que ainda não aconteceu.
+    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(agings)), unidade: "d mediana", contexto: `p90 ${fmtN(percentil(agings, 0.9))} d · aprovação → hoje · líquido ${fmtN(mediana(nums(vis, "agingLiq")))} d` },
+    // Item 4: etapas como indicador, nunca somadas ao tempo da vaga.
+    { rotulo: "Indicador O&R", valor: fmtN(mediana(nums(vis, "tmOR"))), unidade: "d mediana", contexto: "criação até a aprovação" },
+    { rotulo: "Indicador R&S", valor: fmtN(mediana(nums(vis, "tmRS"))), unidade: "d mediana", contexto: "aprovação até a publicação" },
     { rotulo: "Inscritos por posição", valor: fmtN(posAbertas ? inscritos / posAbertas : null), contexto: `${fmtN(inscritos)} inscritos no total` },
   ];
 
@@ -185,6 +192,8 @@ export default function PaginaVagas() {
       <Regua
         meses={meses}
         campos={[
+          { chave: "gerencia", rotulo: "Gerência", opcoes: opcoesDe(todas, "gerencia") },
+          { chave: "status", rotulo: "Status", opcoes: opcoesDe(todas, "status") },
           { chave: "filial", rotulo: "Filial", opcoes: opcoesDe(todas, "filial") },
           { chave: "cargo", rotulo: "Vaga", opcoes: opcoesDe(todas, "vaga") },
           { chave: "recrutador", rotulo: "Recrutador(a)", opcoes: opcoesDe(todas, "recrutador") },

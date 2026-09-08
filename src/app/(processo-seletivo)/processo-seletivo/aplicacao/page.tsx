@@ -41,6 +41,7 @@ interface FormData {
   possuiParente: string
   possuiParenteDetalhes: string
   disponibilidadeHorario: string[]
+  rotaTransporteCiente: boolean
 }
 
 const HORARIOS = [
@@ -114,6 +115,7 @@ export default function AplicacaoRegistrationPage() {
     possuiParente: "",
     possuiParenteDetalhes: "",
     disponibilidadeHorario: [],
+    rotaTransporteCiente: false,
   })
 
   // Hook para carregar estados e cidades
@@ -228,6 +230,7 @@ export default function AplicacaoRegistrationPage() {
     if (!formData.trabalhouGrupo) return "Informe se já trabalhou no Grupo"
     if (!formData.possuiParente) return "Informe se possui parentes na empresa"
     if (formData.disponibilidadeHorario.length === 0) return "Selecione pelo menos uma disponibilidade de horário"
+    if (!formData.rotaTransporteCiente) return "Você deve confirmar que está ciente sobre a rota de transporte"
     return null
   }
 
@@ -288,7 +291,7 @@ export default function AplicacaoRegistrationPage() {
   // Calculate form progress
   const calculateProgress = () => {
     let filled = 0
-    const total = 8
+    const total = 9
     if (formData.cpf && validateCPF(formData.cpf)) filled++
     if (formData.nomeCompleto.trim().split(" ").length >= 2) filled++
     if (formData.estado && formData.cidade) filled++
@@ -297,6 +300,7 @@ export default function AplicacaoRegistrationPage() {
     if (formData.trabalhouGrupo) filled++
     if (formData.possuiParente) filled++
     if (formData.disponibilidadeHorario.length > 0) filled++
+    if (formData.rotaTransporteCiente) filled++
     return Math.round((filled / total) * 100)
   }
 
@@ -743,6 +747,41 @@ export default function AplicacaoRegistrationPage() {
                   <span>{formData.disponibilidadeHorario.length} turno(s) selecionado(s)</span>
                 </div>
               )}
+            </div>
+
+            {/* Section: Ciência sobre Transporte */}
+            <div className="space-y-4">
+              <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <label
+                  className={`flex items-start gap-3 cursor-pointer ${
+                    formData.rotaTransporteCiente ? "text-teal-400" : "text-slate-300"
+                  }`}
+                >
+                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                    formData.rotaTransporteCiente
+                      ? "bg-teal-500 border-teal-500"
+                      : "border-slate-500 bg-slate-900"
+                  }`}>
+                    {formData.rotaTransporteCiente && (
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    )}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={formData.rotaTransporteCiente}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, rotaTransporteCiente: e.target.checked }))}
+                    className="sr-only"
+                  />
+                  <div>
+                    <span className="font-medium">
+                      Estou ciente sobre a rota de transporte <span className="text-red-400">*</span>
+                    </span>
+                    <p className="text-sm text-slate-400 mt-1">
+                      Declaro estar ciente de que a rota do transporte fornecido pela empresa pode não incluir o meu bairro.
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
 
             {/* Submit Button */}
