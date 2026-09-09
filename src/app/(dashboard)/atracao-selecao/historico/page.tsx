@@ -18,7 +18,7 @@ import { useMemo } from "react";
 import { Barras, Colunas, Faixa, Placa, tabelaBarras, tabelaFaixa } from "@/components/atracao-selecao/graficos";
 import { Achados, FaixaLeituras, Forte, Regua, Tabela, type Coluna } from "@/components/atracao-selecao/ui";
 import { fmtBRL, fmtData, fmtMes, fmtN, fmtPct, RAMPA_AGING } from "@/lib/rs/metricas";
-import { contarPor, dispersao, distribuicaoPor, maiores, mediana, nums, percentil, porMes, proporcao } from "@/lib/rs/stats";
+import { contarPor, dispersao, distribuicaoPor, maiores, mediana, medianaPorGrupo, nums, porMes, proporcao } from "@/lib/rs/stats";
 import { aplicarFiltros, mesMaximoDe, opcoesDe, useAtracaoSelecao } from "@/store/atracao-selecao";
 import type { Contratacao } from "@/types/atracao-selecao";
 
@@ -59,10 +59,9 @@ export default function PaginaHistorico() {
   if (!dados) return null;
 
   const tm = nums(vis, "tmPosicao");
-  /* O relógio do recrutamento: da inscrição na Gupy até o aceite. Corre por
-     dentro do tempo da vaga, e não depois dele — somar os dois contaria o mesmo
-     período duas vezes. Inscrição posterior ao aceite dá negativo e sai. */
-  const recrutamento = nums(vis, "dInscAceite").filter((d) => d >= 0);
+  const or = nums(vis, "tmOR");
+  const rs = nums(vis, "tmRS");
+  const porReq = medianaPorGrupo(vis, "codigo", "tmPosicao");
   const meses_ = porMes(vis, "mes");
   const distTm = FAIXAS_TM.map(([min, max, rotulo], i) => ({
     k: rotulo,
@@ -76,18 +75,14 @@ export default function PaginaHistorico() {
       rotulo: "Tempo médio da vaga",
       valor: fmtN(mediana(tm)),
       unidade: "dias",
-      contexto: `na metade dos casos · da aprovação à movimentação · 9 em cada 10 em até ${fmtN(percentil(tm, 0.9))} d`,
+      secundario: { valor: fmtN(porReq), rotulo: "por requisição" },
+      contexto: "da aprovação à movimentação · por posição e por requisição",
       distribuicao: dispersao(tm),
     },
     { rotulo: "Mês mais forte", valor: meses_.length ? fmtMes(maiores(contarPor(vis, "mes"), 1)[0]?.k) : "—", contexto: `${fmtN(maiores(contarPor(vis, "mes"), 1)[0]?.v)} posições` },
     { rotulo: "Recrutamento interno", valor: fmtPct(proporcao(vis, (c) => c.interno)), contexto: `${fmtN(vis.filter((c) => c.interno).length)} das ${fmtN(vis.length)}` },
-    {
-      rotulo: "Indicador de recrutamento",
-      valor: fmtN(mediana(recrutamento)),
-      unidade: "dias",
-      contexto: `da inscrição ao aceite · 9 em cada 10 em até ${fmtN(percentil(recrutamento, 0.9))} d`,
-      distribuicao: dispersao(recrutamento),
-    },
+    { rotulo: "Indicador O&R", valor: fmtN(mediana(or)), unidade: "dias", contexto: "criação até a aprovação da requisição", distribuicao: dispersao(or) },
+    { rotulo: "Indicador de recrutamento", valor: fmtN(mediana(rs)), unidade: "dias", contexto: "aprovação até a publicação da vaga", distribuicao: dispersao(rs) },
   ];
 
   const porMesSerie = meses_.map((m) => ({ k: fmtMes(m.k), v: m.v }));
@@ -116,9 +111,9 @@ export default function PaginaHistorico() {
     if (tm.length) {
       achados.push(
         <>
-          O tempo médio da vaga é de <Forte>{fmtN(mediana(tm))} dias na metade dos casos, e 9 em cada 10 fecham em até {fmtN(percentil(tm, 0.9))}</Forte>,
-          contados da aprovação da O&amp;R até a movimentação para contratação. É o tempo real do
-          ciclo, não a soma de etapas.
+          O tempo médio da vaga é de <Forte>{fmtN(mediana(tm))} dias</Forte>, contados da aprovação
+          da O&amp;R até a movimentação para contratação. É o tempo real do ciclo, não a soma de
+          etapas.
         </>,
       );
     }
@@ -215,11 +210,11 @@ export default function PaginaHistorico() {
           />
         </Placa>
 
-        <Placa titulo="Tempo da vaga por posição" nota="Mediana com faixa p25–p75." span="rs-c6" tabela={tabelaFaixa(tmPorCargo, "Posição")}>
+        <Placa titulo="Tempo da vaga por posição" nota="Dias da aprovação à movimentação." span="rs-c6" tabela={tabelaFaixa(tmPorCargo, "Posição")}>
           <Faixa dados={tmPorCargo} />
         </Placa>
 
-        <Placa titulo="Tempo da vaga por filial" nota="Mediana com faixa p25–p75." span="rs-c6" tabela={tabelaFaixa(tmPorFilial, "Filial")}>
+        <Placa titulo="Tempo da vaga por filial" nota="Dias da aprovação à movimentação." span="rs-c6" tabela={tabelaFaixa(tmPorFilial, "Filial")}>
           <Faixa dados={tmPorFilial} />
         </Placa>
 

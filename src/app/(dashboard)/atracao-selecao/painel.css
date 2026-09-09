@@ -661,3 +661,25 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   height: 100%;
   background: var(--rs-fio-forte);
 }
+
+/* O segundo número da caixa de estado: quantas pessoas aquelas requisições
+   pedem. Vem menor e ao lado, não embaixo, porque é a mesma resposta vista por
+   outra unidade — e não um segundo indicador. */
+.rs-estado__par {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-left: calc(var(--rs-u) * 2.5);
+  padding-left: calc(var(--rs-u) * 2.5);
+  border-left: 1px solid var(--rs-fio);
+  font-size: 0.62em;
+  font-weight: 500;
+  color: var(--rs-tinta-2);
+}
+.rs-estado__par small {
+  font-family: var(--rs-texto);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--rs-tinta-3);
+}

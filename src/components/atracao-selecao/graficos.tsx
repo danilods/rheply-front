@@ -354,8 +354,13 @@ export function Barras({
             borderRadius: [0, 4, 4, 0],
             color: (a: ParamRotulo) => {
               const it = dados[a.dataIndex];
-              // Destaque é estado anormal, e estado anormal tem cor própria.
-              if (destaque?.has(it.k)) return p.alarme;
+              /* O destaque usa o degrau mais alto da rampa, e não o vermelho.
+                 Dentro do instrumento o vermelho competia com o resto do quadro
+                 e não sobrava para o que é de fato alarme — fora do gráfico, na
+                 marca de estado e no aviso de erro, ele continua sendo alarme.
+                 A palavra e a forma continuam carregando o estado; a cor aqui
+                 carrega magnitude. */
+              if (destaque?.has(it.k)) return p.rampa[3];
               // Cor declarada pela página manda; sem ela, quem escolhe é o valor.
               return it.cor ? corDe(it.cor, p, p.rampa[1]) : degrauDe(it.v, tetoRampa, p);
             },
@@ -380,10 +385,10 @@ export function Barras({
                 markLine: {
                   silent: true,
                   symbol: "none",
-                  lineStyle: { color: p.alarme, width: 1.4, type: [5, 4] },
+                  lineStyle: { color: p.tinta2, width: 1.4, type: [5, 4] },
                   label: {
                     formatter: limiar.rotulo,
-                    color: p.alarme,
+                    color: p.tinta2,
                     fontSize: TIPO.marca,
                     fontFamily: p.fonte,
                     // Acima do traço, não na ponta: na ponta o rótulo caía fora
@@ -805,7 +810,7 @@ export function Faixa({ dados }: { dados: ItemFaixa[] }) {
   }, [dados, p]);
 
   if (vazio) return <Vazio />;
-  return <Grafico option={option} altura={altura} aria={`Mediana e faixa p25–p75 por ${dados.length} categorias`} />;
+  return <Grafico option={option} altura={altura} aria={`Tempo típico por ${dados.length} categorias, com a faixa em que a maioria dos casos cai`} />;
 }
 
 export const tabelaFaixa = (dados: ItemFaixa[], colK: string): TabelaGemea => ({
@@ -859,10 +864,14 @@ export function Funil({ nos }: { nos: NoFunil[] }) {
       series: [
         {
           type: "funnel",
-          top: 8,
-          bottom: 8,
-          left: "8%",
-          right: "8%",
+          top: 4,
+          bottom: 4,
+          /* O funil ocupava quase toda a largura da placa e ficava esticado: as
+             etapas viravam faixas largas e baixas, e o estreitamento — que é a
+             informação — quase não aparecia. Recuando as laterais, a mesma
+             perda desenha um ângulo maior. */
+          left: "16%",
+          right: "16%",
           /* A largura sai de uma régua declarada, não do intervalo dos próprios
              dados: assim a etapa lê como fração do topo, e não como posição
              relativa entre a maior e a menor do recorte. */
@@ -895,7 +904,9 @@ export function Funil({ nos }: { nos: NoFunil[] }) {
                    fica no contorno e no texto: aponta a transição sem
                    reivindicar o volume inteiro. */
                 color: p.rampa[degrau],
-                borderColor: i === iCritico ? p.alarme : "transparent",
+                // Contorno em tinta, não em vermelho: aponta a transição sem
+                // gastar a única cor que o quadro reserva para alarme.
+                borderColor: i === iCritico ? p.tinta : "transparent",
                 borderWidth: i === iCritico ? 2.5 : 0,
               },
               label: { color: p.sobreRampa[degrau] },
@@ -907,13 +918,17 @@ export function Funil({ nos }: { nos: NoFunil[] }) {
             fontSize: TIPO.rotulo,
             fontFamily: p.fonte,
             fontWeight: 600,
-            // Na etapa crítica o rótulo diz quanto se perde na passagem. É a
-            // única pergunta que esta placa existe para responder, e ela não
-            // pode depender de sobrevoo.
-            formatter: (a: ParamRotulo) =>
-              a.dataIndex === iCritico
-                ? `${a.name}  ${fmtN(Number(a.value))}   −${fmtN(nos[a.dataIndex].perda)} na passagem`
-                : `${a.name}  ${fmtN(Number(a.value))}`,
+            /* Duas linhas, não uma: o nome da etapa e o número numa fita só
+               ficavam mais largos que o trapézio das etapas de baixo e
+               transbordavam para fora do desenho. Empilhados, cada linha cabe
+               na largura que a etapa tem.
+
+               A perda da etapa crítica saiu do rótulo pelo mesmo motivo — era a
+               linha mais longa de todas, justamente na faixa mais estreita. Ela
+               vive no sobrevoo e na tabela, e o contorno continua apontando
+               onde olhar. */
+            formatter: (a: ParamRotulo) => `${a.name}\n${fmtN(Number(a.value))}`,
+            lineHeight: 17,
           },
           emphasis: { label: { fontSize: TIPO.destaque } },
         },
@@ -925,7 +940,7 @@ export function Funil({ nos }: { nos: NoFunil[] }) {
   return (
     <Grafico
       option={option}
-      altura={Math.max(210, nos.length * 46)}
+      altura={Math.max(200, nos.length * 38)}
       aria={`Funil: ${nos.map((n) => `${n.k} ${fmtN(n.v)}`).join(", ")}`}
     />
   );

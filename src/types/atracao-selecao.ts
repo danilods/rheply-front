@@ -89,6 +89,14 @@ export interface Contratacao {
   dAceiteAdm: number | null;
   /** Dias entre a inscrição na Gupy e o aceite. Negativo quando a inscrição é posterior. */
   dInscAceite: number | null;
+  /**
+   * Etapas da requisição que originou esta posição, cruzadas no servidor com a
+   * base de vagas. A planilha de contratações não traz criação nem publicação;
+   * o encontro acontece no banco, onde a tabela de vagas está inteira —
+   * inclusive as que já fecharam.
+   */
+  tmOR: number | null;
+  tmRS: number | null;
   indicacao: string | null;
   interno: boolean;
 }

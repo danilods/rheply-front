@@ -22,7 +22,7 @@ const SEVERIDADE: Record<ClasseDesfecho, Severidade> = {
 
 /** Mesma lei do desfecho: só o que precisa de ação carrega cor. */
 const COR_CATEGORIA: Record<string, string> = {
-  "Não compareceu ou sem contato": "var(--rs-alarme)",
+  "Não compareceu ou sem contato": "var(--rs-rampa-4)",
   "Condições da vaga (candidato declinou)": "var(--rs-atencao)",
   "Perfil ou requisito (empresa reprovou)": "var(--rs-rampa-1)",
   "Aprovado / carta oferta": "var(--rs-rampa-4)",

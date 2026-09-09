@@ -181,3 +181,30 @@ export function dispersao(a: readonly number[]):
     teto: p90,
   };
 }
+
+/**
+ * O mesmo relógio, agregado por requisição em vez de por posição.
+ *
+ * Uma requisição de doze posições entra doze vezes quando se mede posição a
+ * posição, e uma vez só quando se mede requisição. Os dois números respondem à
+ * mesma pergunta — quanto tempo isto leva — e se afastam justamente quando as
+ * requisições grandes demoram mais que as pequenas, que é a informação que a
+ * média por posição sozinha esconde.
+ */
+export function medianaPorGrupo<T>(
+  rows: readonly T[],
+  grupo: keyof T,
+  valor: keyof T,
+): number | null {
+  const m = new Map<string, number[]>();
+  for (const r of rows) {
+    const g = String(r[grupo] ?? "");
+    const v = r[valor];
+    if (!g || typeof v !== "number" || !Number.isFinite(v)) continue;
+    (m.get(g) ?? m.set(g, []).get(g)!).push(v);
+  }
+  const porGrupo = Array.from(m.values(), (a) => mediana(a)).filter(
+    (v): v is number => v !== null,
+  );
+  return mediana(porGrupo);
+}

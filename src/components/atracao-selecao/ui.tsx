@@ -44,6 +44,15 @@ export interface Leitura {
    */
   distribuicao?: { p25: number; mediana: number; p75: number; p90: number; teto: number };
   /**
+   * O mesmo relógio, contado na outra unidade.
+   *
+   * Uma requisição com doze posições pesa uma vez quando se conta requisições e
+   * doze quando se contam posições. As duas medidas respondem à mesma pergunta
+   * e divergem exatamente onde importa: se as requisições grandes demoram mais
+   * do que as pequenas, os dois números se afastam.
+   */
+  secundario?: { valor: ReactNode; rotulo: string };
+  /**
    * Quanto do todo este número representa.
    *
    * "46 posições abertas" responde metade da pergunta; "de 128 solicitadas"
@@ -115,6 +124,12 @@ export function FaixaLeituras({ itens }: { itens: Leitura[] }) {
           <p className="rs-leitura">
             {i.valor}
             {i.unidade ? <span className="rs-unidade">{i.unidade}</span> : null}
+            {i.secundario ? (
+              <span className="rs-estado__par">
+                {i.secundario.valor}
+                <small>{i.secundario.rotulo}</small>
+              </span>
+            ) : null}
           </p>
           {i.distribuicao && i.distribuicao.teto > 0 ? (
             <Dispersao {...i.distribuicao} />
@@ -139,7 +154,8 @@ export function FaixaLeituras({ itens }: { itens: Leitura[] }) {
 }
 
 /**
- * A tira de dispersão: p25–p75 preenchidos, mediana em traço cheio, p90 marcado.
+ * A tira de dispersão: a faixa onde a maioria dos casos cai, o tempo típico em
+ * traço cheio, e a marca de onde nove em cada dez já terminaram.
  *
  * Divs posicionados por porcentagem, e não SVG com viewBox: um viewBox esticado
  * na largura do cartão esticaria junto a espessura do traço da mediana, e a
@@ -165,7 +181,7 @@ function Dispersao({
     <div
       className="rs-micro"
       role="img"
-      aria-label={`metade dos casos entre ${p25} e ${p75}, mediana ${med}, nove em cada dez até ${p90}`}
+      aria-label={`a maioria dos casos entre ${p25} e ${p75} dias, tempo típico ${med}, nove em cada dez até ${p90}`}
     >
       <div className="rs-micro__faixa" style={{ left: `${a}%`, width: `${Math.max(b - a, 1)}%` }} />
       <div className="rs-micro__p90" style={{ left: `${pc(p90)}%` }} />
@@ -185,6 +201,16 @@ export interface Classe {
   /** A palavra. A cor nunca informa sozinha. */
   palavra: string;
   contagem: number;
+  /**
+   * Quantas pessoas essas requisições pedem.
+   *
+   * Contar requisições responde meia pergunta. Dezoito requisições fora do
+   * prazo podem ser dezoito vagas ou cento e quarenta pessoas esperando, e é o
+   * segundo número que dimensiona o problema. Fica ao lado do primeiro, na
+   * mesma caixa, porque separá-los em telas diferentes é o que fazia ninguém
+   * cruzar os dois.
+   */
+  posicoes?: number;
   /** O prazo ou a régua da classe. */
   prazo: string;
 }
@@ -212,7 +238,15 @@ export function BarraEstado({ classes }: { classes: Classe[] }) {
               {c.palavra}
             </span>
           </div>
-          <p className="rs-leitura rs-leitura--peq rs-estado__valor">{fmtN(c.contagem)}</p>
+          <p className="rs-leitura rs-leitura--peq rs-estado__valor">
+            {fmtN(c.contagem)}
+            {c.posicoes !== undefined ? (
+              <span className="rs-estado__par">
+                {fmtN(c.posicoes)}
+                <small>posições</small>
+              </span>
+            ) : null}
+          </p>
           <p className="rs-estado__prazo" style={{ marginTop: 4 }}>
             {c.prazo}
           </p>

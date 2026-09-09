@@ -28,7 +28,7 @@ import {
   RAMPA_AGING,
   vagaAtrasada,
 } from "@/lib/rs/metricas";
-import { contarPor, dispersao, maiores, mediana, nums, percentil, porMes, proporcao, somarPor, sum } from "@/lib/rs/stats";
+import { contarPor, dispersao, maiores, mediana, nums, porMes, proporcao, somarPor, sum } from "@/lib/rs/stats";
 import { aplicarFiltros, mesMaximoDe, opcoesDe, useAtracaoSelecao } from "@/store/atracao-selecao";
 import type { VagaAberta } from "@/types/atracao-selecao";
 
@@ -64,11 +64,17 @@ export default function PaginaVagas() {
   const posAbertas = sum(vis, "posAbertas");
   const inscritos = sum(vis, "inscritos");
 
+  /* Cada caixa carrega as duas unidades: quantas requisições e quantas pessoas
+     elas pedem. Dezoito requisições fora do prazo podem ser dezoito vagas ou
+     cento e quarenta pessoas esperando. */
+  const pos = (rs: readonly VagaAberta[]) => rs.reduce((t, v) => t + (v.posAbertas ?? 0), 0);
+  const ativas = vis.filter((v) => v.status === "Ativa");
+  const aprovadas = vis.filter((v) => v.status === "Aprovada");
   const classes: Classe[] = [
-    { severidade: "alarme", palavra: "Fora do prazo", contagem: atrasadas.length, prazo: `${fmtPct(proporcao(vis, vagaAtrasada))} das vagas abertas` },
-    { severidade: "atencao", palavra: "Congelada", contagem: congeladas.length, prazo: "continua contando dias sem avançar" },
-    { severidade: "processo", palavra: "Ativa", contagem: vis.filter((v) => v.status === "Ativa").length, prazo: "publicada e recebendo" },
-    { severidade: "normal", palavra: "Aprovada", contagem: vis.filter((v) => v.status === "Aprovada").length, prazo: "aguardando publicação" },
+    { severidade: "alarme", palavra: "Fora do prazo", contagem: atrasadas.length, posicoes: pos(atrasadas), prazo: `${fmtPct(proporcao(vis, vagaAtrasada))} das vagas abertas` },
+    { severidade: "atencao", palavra: "Congelada", contagem: congeladas.length, posicoes: pos(congeladas), prazo: "continua contando dias sem avançar" },
+    { severidade: "processo", palavra: "Ativa", contagem: ativas.length, posicoes: pos(ativas), prazo: "publicada e recebendo" },
+    { severidade: "normal", palavra: "Aprovada", contagem: aprovadas.length, posicoes: pos(aprovadas), prazo: "aguardando publicação" },
   ];
 
   const leituras = [
@@ -82,7 +88,7 @@ export default function PaginaVagas() {
       rotulo: "Tempo médio da vaga",
       valor: fmtN(mediana(agings)),
       unidade: "dias",
-      contexto: `na metade dos casos · da aprovação até hoje · 9 em cada 10 em até ${fmtN(percentil(agings, 0.9))} d`,
+      contexto: "da aprovação até hoje",
       distribuicao: dispersao(agings),
     },
     // Item 4: etapas como indicador, nunca somadas ao tempo da vaga.
@@ -99,6 +105,8 @@ export default function PaginaVagas() {
     v: vis.filter((v) => faixaAging(v.aging) === f).length,
     cor: RAMPA_AGING[Math.min(i, RAMPA_AGING.length - 1)],
   }));
+  // A mesma faixa, contada em pessoas: é o que dimensiona a espera.
+  const posPorFaixa = faixas.map((f) => pos(vis.filter((v) => faixaAging(v.aging) === f)));
   const porFilial = maiores(somarPor(vis, "filial", "posAbertas")).filter((x) => x.v);
   const porCargo = maiores(contarPor(vis, "vaga"), 7);
   const porMotivo = maiores(contarPor(vis, "motivoAbertura"), 6);
@@ -227,8 +235,20 @@ export default function PaginaVagas() {
         <div className="rs-c12"><BarraEstado classes={classes} /></div>
         <div className="rs-c12"><FaixaLeituras itens={leituras} /></div>
 
-        <Placa titulo="Há quanto tempo estão abertas" nota="Dias corridos desde a aprovação. Escala de magnitude: mais escuro é mais tempo parado." span="rs-c5" tabela={tabelaBarras(porFaixa, "Faixa", "Vagas")}>
-          <Barras dados={porFaixa} />
+        <Placa
+          titulo="Há quanto tempo estão abertas"
+          nota="Dias corridos desde a aprovação, em requisições e nas pessoas que elas pedem."
+          span="rs-c5"
+          legenda={[{ nome: "Requisições", cor: "var(--rs-rampa-2)" }, { nome: "Posições", cor: "var(--rs-rampa-1)" }]}
+          tabela={{
+            cabecalhos: ["Faixa", "Requisições", "Posições"],
+            linhas: porFaixa.map((f, i) => [f.k, fmtN(f.v), fmtN(posPorFaixa[i])]),
+          }}
+        >
+          <Barras
+            dados={porFaixa.map((f) => ({ k: f.k, v: f.v }))}
+            serieExtra={{ nome: "Posições", nomeBase: "Requisições", valores: posPorFaixa }}
+          />
         </Placa>
 
         <Placa titulo="Posições a preencher por filial" nota="Soma das posições ainda abertas." span="rs-c7" tabela={tabelaBarras(porFilial, "Filial", "Posições")}>

@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import { Barras, Colunas, Empilhado, Faixa, Placa, tabelaBarras, tabelaEmpilhada, tabelaFaixa } from "@/components/atracao-selecao/graficos";
 import { Achados, FaixaLeituras, Forte, Regua, Tabela, type Coluna } from "@/components/atracao-selecao/ui";
 import { fmtData, fmtMes, fmtN, fmtPct } from "@/lib/rs/metricas";
-import { contarPor, dispersao, distribuicaoPor, maiores, mean, mediana, nums, percentil, porMes, proporcao } from "@/lib/rs/stats";
+import { contarPor, dispersao, distribuicaoPor, maiores, mean, mediana, medianaPorGrupo, nums, porMes, proporcao } from "@/lib/rs/stats";
 import { aplicarFiltros, mesMaximoDe, opcoesDe, useAtracaoSelecao } from "@/store/atracao-selecao";
 import type { Contratacao } from "@/types/atracao-selecao";
 
@@ -40,11 +40,14 @@ export default function PaginaContratacoes() {
   if (!dados) return null;
 
   const tempos = nums(vis, "tmPosicao");
-  /* Da inscrição na Gupy até o aceite: o relógio do recrutamento propriamente
-     dito, que corre por dentro do tempo da vaga e não se soma a ele. Valores
-     negativos existem — inscrição posterior ao aceite, quando o candidato foi
-     cadastrado depois — e são descartados por não medirem duração nenhuma. */
-  const recrutamento = nums(vis, "dInscAceite").filter((d) => d >= 0);
+  /* As duas etapas da requisição que originou cada posição. Vêm cruzadas do
+     servidor com a base de vagas: a planilha de contratações não traz criação
+     nem publicação, e o encontro acontece no banco, onde a tabela de vagas está
+     inteira — inclusive as requisições que já fecharam. */
+  const or = nums(vis, "tmOR");
+  const rs = nums(vis, "tmRS");
+  // O mesmo relógio da posição, agregado por requisição.
+  const porReq = medianaPorGrupo(vis, "codigo", "tmPosicao");
   const semOrigem = vis.filter((c) => c.origem === "Não informado").length;
   const pcd = vis.filter((c) => c.pcd).length;
   const mulheres = vis.filter((c) => c.genero === "Feminino").length;
@@ -55,16 +58,12 @@ export default function PaginaContratacoes() {
       rotulo: "Tempo médio da vaga",
       valor: fmtN(mediana(tempos)),
       unidade: "dias",
-      contexto: `na metade dos casos · da aprovação à movimentação · 9 em cada 10 em até ${fmtN(percentil(tempos, 0.9))} d`,
+      secundario: { valor: fmtN(porReq), rotulo: "por requisição" },
+      contexto: "da aprovação à movimentação · por posição e por requisição",
       distribuicao: dispersao(tempos),
     },
-    {
-      rotulo: "Indicador de recrutamento",
-      valor: fmtN(mediana(recrutamento)),
-      unidade: "dias",
-      contexto: `da inscrição ao aceite · 9 em cada 10 em até ${fmtN(percentil(recrutamento, 0.9))} d`,
-      distribuicao: dispersao(recrutamento),
-    },
+    { rotulo: "Indicador O&R", valor: fmtN(mediana(or)), unidade: "dias", contexto: "criação até a aprovação da requisição", distribuicao: dispersao(or) },
+    { rotulo: "Indicador de recrutamento", valor: fmtN(mediana(rs)), unidade: "dias", contexto: "aprovação até a publicação da vaga", distribuicao: dispersao(rs) },
     { rotulo: "Mulheres", valor: fmtPct(proporcao(vis, (c) => c.genero === "Feminino")), contexto: `${fmtN(mulheres)} contratações` },
     { rotulo: "Pessoas com deficiência", valor: fmtN(pcd), contexto: `${fmtPct(proporcao(vis, (c) => c.pcd))} das admissões · a cota é sobre o quadro` },
   ];
@@ -121,18 +120,20 @@ export default function PaginaContratacoes() {
         </>,
       );
     }
-    if (recrutamento.length) {
+    if (or.length && rs.length) {
       achados.push(
         <>
-          Da inscrição ao aceite passam <Forte>{fmtN(mediana(recrutamento))} dias na metade dos casos</Forte> (9 em cada 10 em até {fmtN(percentil(recrutamento, 0.9))}). É o trecho que o recrutamento controla por inteiro, e ele corre por dentro do tempo da vaga — não se soma a ele.
+          Antes de a vaga ir ao ar passam <Forte>{fmtN(mediana(or))} dias até a requisição ser aprovada</Forte> e mais {fmtN(mediana(rs))} até ela ser publicada. Esse trecho acontece antes de existir candidato, e some da conta de quem olha só o tempo do recrutamento.
         </>,
       );
     }
-    achados.push(
-      <>
-        <Forte>O indicador de O&amp;R não sai desta base.</Forte> Medir da criação até a aprovação da requisição exige a data de criação, e a exportação de contratações não a traz — ela existe só na de vagas. Cruzar as duas devolveria apenas as requisições parcialmente preenchidas, que são as que continuam abertas, e apresentar esse recorte como número geral seria pior do que não mostrar. O indicador de O&amp;R está no Mapa de Vagas.
-      </>,
-    );
+    if (porReq !== null && mediana(tempos) !== null) {
+      achados.push(
+        <>
+          Medido por posição, o tempo da vaga é de <Forte>{fmtN(mediana(tempos))} dias</Forte>; medido por requisição, {fmtN(porReq)}. Quando os dois se afastam é porque as requisições grandes correm em ritmo diferente das pequenas.
+        </>,
+      );
+    }
     achados.push(
       <>
         <Forte>{fmtPct(mulheres / vis.length)} das contratações são de mulheres</Forte> e {fmtN(pcd)} são de pessoas com deficiência ({fmtPct(pcd / vis.length)}). A cota legal é medida sobre o quadro total, não sobre as admissões do período.
@@ -176,7 +177,7 @@ export default function PaginaContratacoes() {
       <div className="rs-grade" style={{ marginTop: 16 }}>
         <div className="rs-c12"><FaixaLeituras itens={leituras} /></div>
 
-        <Placa titulo="Aceites de carta oferta por mês" nota="Quando o candidato aceitou a proposta." span="rs-c8" tabela={tabelaBarras(aceites, "Mês", "Aceites")}>
+        <Placa titulo="Posições fechadas por mês" nota="Quando a posição saiu do quadro de abertas." span="rs-c8" tabela={tabelaBarras(aceites, "Mês", "Aceites")}>
           <Colunas dados={aceites} altura={214} agora={fmtMes(mesMaximo)} />
         </Placa>
 
@@ -184,7 +185,7 @@ export default function PaginaContratacoes() {
           <Barras dados={porOrigem} />
         </Placa>
 
-        <Placa titulo="Tempo de posição por filial" nota="Mediana com faixa p25–p75, em dias da aprovação ao aceite." span="rs-c8" tabela={tabelaFaixa(tempoPorFilial, "Filial")}>
+        <Placa titulo="Tempo de posição por filial" nota="Dias da aprovação ao aceite." span="rs-c8" tabela={tabelaFaixa(tempoPorFilial, "Filial")}>
           <Faixa dados={tempoPorFilial} />
         </Placa>
 

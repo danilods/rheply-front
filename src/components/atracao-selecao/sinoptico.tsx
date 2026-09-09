@@ -23,7 +23,7 @@ import {
   prazoAlvo,
   vagaAtrasada,
 } from "@/lib/rs/metricas";
-import { contarPor, maiores, mediana, nums, percentil, porMes, proporcao, sum } from "@/lib/rs/stats";
+import { contarPor, maiores, mediana, nums, porMes, proporcao, sum } from "@/lib/rs/stats";
 import type { QualidadeDados } from "@/services/atracao-selecao-api";
 import type { Contratacao, Candidatura, VagaAberta } from "@/types/atracao-selecao";
 
@@ -154,23 +154,27 @@ export function CorpoSinoptico({
 
   /* A barra conta vagas, e só vagas. "Com o gestor" é fila de candidatos e
      mudou para as leituras, onde a unidade vem escrita ao lado do número. */
+  const pos = (rs: readonly VagaAberta[]) => rs.reduce((t, v) => t + (v.posAbertas ?? 0), 0);
   const classes: Classe[] = [
     {
       severidade: "alarme",
       palavra: "Fora do prazo",
       contagem: c.atrasadas.length,
+      posicoes: pos(c.atrasadas),
       prazo: `alvo de ${prazoAlvo("Promotor(a) de Vendas")} d nos cargos operacionais`,
     },
     {
       severidade: "atencao",
       palavra: "Congelada, no prazo",
       contagem: c.congeladasNoPrazo.length,
+      posicoes: pos(c.congeladasNoPrazo),
       prazo: "não avança e continua contando dias",
     },
     {
       severidade: "normal",
       palavra: "Dentro do prazo",
       contagem: c.noPrazo.length,
+      posicoes: pos(c.noPrazo),
       prazo:
         c.noPrazo.length === 0
           ? "nenhuma vaga aberta está em dia"
@@ -206,7 +210,7 @@ export function CorpoSinoptico({
       tom: (mediana(c.temposPosicao) ?? 0) > 44 ? ("atencao" as const) : ("normal" as const),
       valor: fmtN(mediana(c.temposPosicao)),
       unidade: "dias",
-      contexto: `na metade dos casos · da aprovação à movimentação · 9 em cada 10 em até ${fmtN(percentil(c.temposPosicao, 0.9))} d${semGerencia}`,
+      contexto: semGerencia.trim(),
     },
     {
       // Item 4: os dois tempos de etapa entram como indicador, não como o
@@ -274,7 +278,7 @@ export function CorpoSinoptico({
             span="rs-c7"
             legenda={[
               { nome: "No prazo", cor: "var(--rs-rampa-2)" },
-              { nome: "Fora do prazo", cor: "var(--rs-alarme)" },
+              { nome: "Fora do prazo", cor: "var(--rs-rampa-4)" },
             ]}
             total={{ rotulo: "Posições abertas no total", valor: fmtN(c.porGerencia.reduce((t, g) => t + g.posicoes, 0)) }}
             tabela={{
@@ -292,14 +296,14 @@ export function CorpoSinoptico({
               categorias={c.porGerencia.map((g) => g.k)}
               series={[
                 { nome: "No prazo", cor: "var(--rs-rampa-2)", valores: Object.fromEntries(c.porGerencia.map((g) => [g.k, g.noPrazo])) },
-                { nome: "Fora do prazo", cor: "var(--rs-alarme)", valores: Object.fromEntries(c.porGerencia.map((g) => [g.k, g.atrasadas])) },
+                { nome: "Fora do prazo", cor: "var(--rs-rampa-4)", valores: Object.fromEntries(c.porGerencia.map((g) => [g.k, g.atrasadas])) },
               ]}
             />
           </Placa>
 
           <Placa
             titulo="Espera mediana por gerência"
-            nota="Dias corridos desde a aprovação, na metade dos casos. O traço marca o alvo dos cargos operacionais."
+            nota="Dias corridos desde a aprovação. O traço marca o alvo dos cargos operacionais."
             span="rs-c5"
             tabela={{
               cabecalhos: ["Gerência", "Espera mediana"],
