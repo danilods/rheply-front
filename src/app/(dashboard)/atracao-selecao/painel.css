@@ -678,13 +678,18 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   margin-left: calc(var(--rs-u) * 2.5);
   padding-left: calc(var(--rs-u) * 2.5);
   border-left: 1px solid var(--rs-fio);
-  font-size: 0.62em;
+  /* Degraus absolutos da escada, não fração do pai. Em `em` esta mesma peça
+     media 16,1px dentro da caixa de estado (pai de 26px) e 24,8px dentro do
+     cartão (pai de 40px) — dois corpos diferentes para o mesmo elemento, nenhum
+     deles na escada, e a unidade relativa escondia isso de qualquer conferência
+     que leia o valor declarado. */
+  font-size: 19px;
   font-weight: 500;
   color: var(--rs-tinta-2);
 }
 .rs-estado__par small {
   font-family: var(--rs-texto);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--rs-tinta-3);
