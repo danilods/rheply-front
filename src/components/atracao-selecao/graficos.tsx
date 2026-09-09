@@ -302,6 +302,12 @@ export function Barras({
           type: "bar",
           barMaxWidth: 16,
           itemStyle: {
+            /* Os 4px da ponta são herança deliberada do desenho anterior, que
+               os documentava como "base reta, ponta do dado arredondada". A
+               base fica reta porque é onde a barra encosta no eixo, e a ponta
+               cede porque é onde o dado termina. É a única exceção à Regra do
+               Canto Reto neste módulo, e ela vem de trás — não foi inventada
+               na troca de motor. */
             borderRadius: [0, 4, 4, 0],
             color: (a: ParamRotulo) => {
               const it = dados[a.dataIndex];
@@ -523,7 +529,7 @@ export function Empilhado({
             .map(
               (l) =>
                 `<div style="display:flex;gap:8px;align-items:center;margin-top:3px">` +
-                `<i style="width:9px;height:9px;border-radius:2px;background:${l.color}"></i>` +
+                `<i style="width:9px;height:9px;background:${l.color}"></i>` +
                 `<span style="flex:1">${l.seriesName}</span>` +
                 `<b>${fmtN(l.value)}${proporcional ? ` · ${fmtPct(l.value / total)}` : ""}</b></div>`,
             )
@@ -694,13 +700,13 @@ export function Faixa({ dados }: { dados: ItemFaixa[] }) {
                 {
                   // A faixa: onde metade dos casos cai.
                   type: "rect",
-                  shape: { x: x25, y: y - hFaixa / 2, width: Math.max(x75 - x25, 1.5), height: hFaixa, r: 2 },
+                  shape: { x: x25, y: y - hFaixa / 2, width: Math.max(x75 - x25, 1.5), height: hFaixa },
                   style: { fill: p.rampa[1], opacity: p.escuro ? 0.55 : 0.42 },
                 },
                 {
                   // A mediana: traço cheio, atravessando a faixa.
                   type: "rect",
-                  shape: { x: xMed - 1.4, y: y - 11, width: 2.8, height: 22, r: 1.4 },
+                  shape: { x: xMed - 1.4, y: y - 11, width: 2.8, height: 22 },
                   style: { fill: p.rampa[2] },
                 },
               ],

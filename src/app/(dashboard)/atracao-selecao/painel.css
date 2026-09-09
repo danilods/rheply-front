@@ -608,7 +608,6 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   background: linear-gradient(90deg, transparent, var(--rs-placa-funda), transparent);
   background-size: 220% 100%;
   animation: rs-esperando 1.4s ease-in-out infinite;
-  border-radius: 6px;
   opacity: 0.55;
 }
 @keyframes rs-esperando {

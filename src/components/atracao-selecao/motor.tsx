@@ -193,7 +193,9 @@ export const dica = (p: Paleta): EChartsOption["tooltip"] => ({
   borderWidth: 0,
   padding: [8, 11],
   textStyle: { color: p.escuro ? p.tinta : p.placa, fontSize: TIPO.marca, fontFamily: p.fonte },
-  extraCssText: "border-radius:8px; box-shadow:0 6px 22px -8px rgb(15 23 42 / 45%);",
+  // Canto reto, como a dica que este sobrevoo substituiu: a Regra do Canto
+  // Reto do sistema nomeia a dica entre os instrumentos de raio zero.
+  extraCssText: "border-radius:0; box-shadow:0 6px 22px -8px rgb(15 23 42 / 45%);",
   confine: true,
 });
 
