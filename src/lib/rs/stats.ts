@@ -158,3 +158,26 @@ export function mesMenos(m: string, k: number): string {
   }
   return `${ano}-${String(mes).padStart(2, "0")}`;
 }
+
+/**
+ * Os quatro números que a tira de dispersão desenha.
+ *
+ * O teto é o p90, e não o máximo: um único caso de trezentos dias comprimiria
+ * a faixa inteira contra a margem esquerda e a tira não mostraria mais nada.
+ * O p90 já está no texto do cartão, então usá-lo como fim da régua mantém o
+ * desenho e a legenda falando da mesma escala.
+ */
+export function dispersao(a: readonly number[]):
+  | { p25: number; mediana: number; p75: number; p90: number; teto: number }
+  | undefined {
+  if (a.length < 4) return undefined;
+  const p90 = percentil(a, 0.9) ?? 0;
+  if (p90 <= 0) return undefined;
+  return {
+    p25: percentil(a, 0.25) ?? 0,
+    mediana: mediana(a) ?? 0,
+    p75: percentil(a, 0.75) ?? 0,
+    p90,
+    teto: p90,
+  };
+}

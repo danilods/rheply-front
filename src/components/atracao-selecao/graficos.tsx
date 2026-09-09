@@ -249,6 +249,7 @@ export function Barras({
   destaque,
   limiar,
   max,
+  serieExtra,
 }: {
   dados: ItemBarra[];
   unidade?: string;
@@ -256,12 +257,28 @@ export function Barras({
   destaque?: Set<string>;
   limiar?: { valor: number; rotulo: string };
   max?: number;
+  /**
+   * A segunda medida da mesma categoria, na barra de baixo.
+   *
+   * Vaga e posição são grandezas diferentes da mesma requisição: uma vaga com
+   * doze posições conta uma no eixo e doze na necessidade real. Em placas
+   * separadas ninguém cruza as duas; no par, a distância entre as barras *é* o
+   * dado — mostra quais gestores têm poucas requisições grandes e quais têm
+   * muitas pequenas.
+   */
+  serieExtra?: { nome: string; nomeBase: string; valores: number[] };
 }) {
   const p = usePaleta();
   const vazio = !dados.length || dados.every((d) => !d.v);
 
   const visiveis = Math.min(dados.length, LINHAS_SEM_ZOOM);
-  const altura = visiveis * 30 + (limiar ? 34 : 18);
+  /* No par, a linha precisa de mais ar do que a soma das duas barras sugere:
+     quando as duas séries têm o mesmo valor os dois rótulos caem no mesmo x, e
+     aí quem os separa é só a distância vertical. Com 40px de linha essa
+     distância ficava em 11px para uma fonte de 13px, e os números se escreviam
+     por cima — um defeito que só aparece quando as duas medidas coincidem, ou
+     seja, na requisição de uma posição só. */
+  const altura = visiveis * (serieExtra ? 48 : 30) + (limiar ? 34 : 18);
 
   const option = useMemo<EChartsOption>(() => {
     const { largura: wRot, letras } = calha(dados.map((d) => d.k));
@@ -323,8 +340,10 @@ export function Barras({
         : {}),
       series: [
         {
+          name: serieExtra?.nomeBase,
           type: "bar",
-          barMaxWidth: 16,
+          barMaxWidth: serieExtra ? 13 : 16,
+          barGap: "45%",
           itemStyle: {
             /* Os 4px da ponta são herança deliberada do desenho anterior, que
                os documentava como "base reta, ponta do dado arredondada". A
@@ -377,9 +396,32 @@ export function Barras({
               }
             : {}),
         },
+        ...(serieExtra
+          ? [
+              {
+                name: serieExtra.nome,
+                type: "bar" as const,
+                barMaxWidth: 13,
+                barGap: "45%",
+                // Um degrau claro contra o escuro da barra principal: lado a
+                // lado, degraus vizinhos da rampa não se separam.
+                itemStyle: { borderRadius: [0, 4, 4, 0] as [number, number, number, number], color: p.rampa[0] },
+                label: {
+                  show: true,
+                  position: "right" as const,
+                  distance: 7,
+                  color: p.tinta2,
+                  fontSize: TIPO.valor,
+                  fontFamily: p.fonte,
+                  formatter: (a: ParamRotulo) => formatar(serieExtra.valores[a.dataIndex]),
+                },
+                data: serieExtra.valores,
+              },
+            ]
+          : []),
       ],
     };
-  }, [dados, p, unidade, formatar, destaque, limiar, max]);
+  }, [dados, p, unidade, formatar, destaque, limiar, max, serieExtra]);
 
   if (vazio) return <Vazio />;
   return <Grafico option={option} altura={altura} aria={`Barras: ${dados.map((d) => `${d.k} ${formatar(d.v)}${unidade}`).join(", ")}`} />;

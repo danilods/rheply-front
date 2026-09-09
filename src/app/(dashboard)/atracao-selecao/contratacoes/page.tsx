@@ -6,8 +6,8 @@ import { useMemo } from "react";
 
 import { Barras, Colunas, Empilhado, Faixa, Placa, tabelaBarras, tabelaEmpilhada, tabelaFaixa } from "@/components/atracao-selecao/graficos";
 import { Achados, FaixaLeituras, Forte, Regua, Tabela, type Coluna } from "@/components/atracao-selecao/ui";
-import { fmtBRL, fmtData, fmtMes, fmtN, fmtPct } from "@/lib/rs/metricas";
-import { contarPor, distribuicaoPor, maiores, mean, mediana, nums, percentil, porMes, proporcao } from "@/lib/rs/stats";
+import { fmtData, fmtMes, fmtN, fmtPct } from "@/lib/rs/metricas";
+import { contarPor, dispersao, distribuicaoPor, maiores, mean, mediana, nums, percentil, porMes, proporcao } from "@/lib/rs/stats";
 import { aplicarFiltros, mesMaximoDe, opcoesDe, useAtracaoSelecao } from "@/store/atracao-selecao";
 import type { Contratacao } from "@/types/atracao-selecao";
 
@@ -40,18 +40,31 @@ export default function PaginaContratacoes() {
   if (!dados) return null;
 
   const tempos = nums(vis, "tmPosicao");
-  const admissao = nums(vis, "dAceiteAdm");
-  const salarios = nums(vis, "salContr");
-  const piso = salarios.length ? Math.min(...salarios) : null;
+  /* Da inscrição na Gupy até o aceite: o relógio do recrutamento propriamente
+     dito, que corre por dentro do tempo da vaga e não se soma a ele. Valores
+     negativos existem — inscrição posterior ao aceite, quando o candidato foi
+     cadastrado depois — e são descartados por não medirem duração nenhuma. */
+  const recrutamento = nums(vis, "dInscAceite").filter((d) => d >= 0);
   const semOrigem = vis.filter((c) => c.origem === "Não informado").length;
   const pcd = vis.filter((c) => c.pcd).length;
   const mulheres = vis.filter((c) => c.genero === "Feminino").length;
 
   const leituras = [
     { rotulo: "Posições fechadas", valor: fmtN(vis.length), contexto: `${fmtN(new Set(vis.map((c) => c.idVaga)).size)} vagas distintas` },
-    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(tempos)), unidade: "dias", contexto: `na metade dos casos · da aprovação à movimentação · 9 em cada 10 em até ${fmtN(percentil(tempos, 0.9))} d` },
-    { rotulo: "Aceite até a admissão", valor: fmtN(mediana(admissao)), unidade: "dias", contexto: `p90 ${fmtN(percentil(admissao, 0.9))} d · janela da documentação` },
-    { rotulo: "Salário contratado", valor: fmtBRL(mediana(salarios)), contexto: piso !== null ? `${fmtPct(salarios.filter((v) => v === piso).length / salarios.length)} no piso da amostra` : "" },
+    {
+      rotulo: "Tempo médio da vaga",
+      valor: fmtN(mediana(tempos)),
+      unidade: "dias",
+      contexto: `na metade dos casos · da aprovação à movimentação · 9 em cada 10 em até ${fmtN(percentil(tempos, 0.9))} d`,
+      distribuicao: dispersao(tempos),
+    },
+    {
+      rotulo: "Indicador de recrutamento",
+      valor: fmtN(mediana(recrutamento)),
+      unidade: "dias",
+      contexto: `da inscrição ao aceite · 9 em cada 10 em até ${fmtN(percentil(recrutamento, 0.9))} d`,
+      distribuicao: dispersao(recrutamento),
+    },
     { rotulo: "Mulheres", valor: fmtPct(proporcao(vis, (c) => c.genero === "Feminino")), contexto: `${fmtN(mulheres)} contratações` },
     { rotulo: "Pessoas com deficiência", valor: fmtN(pcd), contexto: `${fmtPct(proporcao(vis, (c) => c.pcd))} das admissões · a cota é sobre o quadro` },
   ];
@@ -108,13 +121,18 @@ export default function PaginaContratacoes() {
         </>,
       );
     }
-    if (admissao.length) {
+    if (recrutamento.length) {
       achados.push(
         <>
-          Entre aceitar a carta e ser admitido passam <Forte>{fmtN(mediana(admissao))} dias na metade dos casos</Forte> (9 em cada 10 em até {fmtN(percentil(admissao, 0.9))}). É a janela em que aviso prévio, exame admissional e documentação derrubam candidatos já aprovados.
+          Da inscrição ao aceite passam <Forte>{fmtN(mediana(recrutamento))} dias na metade dos casos</Forte> (9 em cada 10 em até {fmtN(percentil(recrutamento, 0.9))}). É o trecho que o recrutamento controla por inteiro, e ele corre por dentro do tempo da vaga — não se soma a ele.
         </>,
       );
     }
+    achados.push(
+      <>
+        <Forte>O indicador de O&amp;R não sai desta base.</Forte> Medir da criação até a aprovação da requisição exige a data de criação, e a exportação de contratações não a traz — ela existe só na de vagas. Cruzar as duas devolveria apenas as requisições parcialmente preenchidas, que são as que continuam abertas, e apresentar esse recorte como número geral seria pior do que não mostrar. O indicador de O&amp;R está no Mapa de Vagas.
+      </>,
+    );
     achados.push(
       <>
         <Forte>{fmtPct(mulheres / vis.length)} das contratações são de mulheres</Forte> e {fmtN(pcd)} são de pessoas com deficiência ({fmtPct(pcd / vis.length)}). A cota legal é medida sobre o quadro total, não sobre as admissões do período.
@@ -132,8 +150,7 @@ export default function PaginaContratacoes() {
     { chave: "gestor", rotulo: "Gestor(a)" },
     { chave: "origem", rotulo: "Origem" },
     { chave: "tmPosicao", rotulo: "Posição", numero: true, texto: (c) => `${fmtN(c.tmPosicao)} d` },
-    { chave: "dAceiteAdm", rotulo: "Aceite→admissão", numero: true, texto: (c) => `${fmtN(c.dAceiteAdm)} d` },
-    { chave: "salContr", rotulo: "Salário", numero: true, texto: (c) => fmtBRL(c.salContr) },
+    { chave: "dInscAceite", rotulo: "Inscrição→aceite", numero: true, texto: (c) => `${fmtN(c.dInscAceite)} d` },
     { chave: "genero", rotulo: "Gênero" },
     { chave: "faixaEtaria", rotulo: "Faixa etária" },
     { chave: "uf", rotulo: "UF" },

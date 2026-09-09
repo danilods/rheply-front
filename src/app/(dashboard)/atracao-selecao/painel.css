@@ -617,3 +617,47 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .rs-grafico--carregando { animation: none; }
 }
+
+/* ------------------------------------------------------------------ *
+ * Micro-instrumento do cartão
+ *
+ * A régua que estava escrita no contexto do cartão, desenhada. Ocupa a mesma
+ * calha do texto e some quando não há dispersão para mostrar — cartão de
+ * contagem não ganha tira só para ficar simétrico com o vizinho.
+ * ------------------------------------------------------------------ */
+
+.rs-micro {
+  position: relative;
+  height: 8px;
+  margin-top: calc(var(--rs-u) * 2);
+  background: var(--rs-placa-funda);
+}
+.rs-micro__faixa {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: var(--rs-rampa-1);
+}
+.rs-micro__parte {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--rs-rampa-2);
+}
+/* A mediana atravessa a tira e sobra 2px de cada lado: é a marca que se lê
+   primeiro, e ficar contida dentro da faixa a esconderia quando a faixa é
+   estreita. */
+.rs-micro__mediana {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: calc(100% + 4px);
+  margin-left: -1px;
+  background: var(--rs-rampa-4);
+}
+.rs-micro__p90 {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--rs-fio-forte);
+}

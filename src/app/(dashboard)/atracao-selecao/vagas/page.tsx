@@ -28,7 +28,7 @@ import {
   RAMPA_AGING,
   vagaAtrasada,
 } from "@/lib/rs/metricas";
-import { contarPor, maiores, mediana, nums, percentil, porMes, proporcao, somarPor, sum } from "@/lib/rs/stats";
+import { contarPor, dispersao, maiores, mediana, nums, percentil, porMes, proporcao, somarPor, sum } from "@/lib/rs/stats";
 import { aplicarFiltros, mesMaximoDe, opcoesDe, useAtracaoSelecao } from "@/store/atracao-selecao";
 import type { VagaAberta } from "@/types/atracao-selecao";
 
@@ -73,15 +73,21 @@ export default function PaginaVagas() {
 
   const leituras = [
     { rotulo: "Requisições abertas", valor: fmtN(new Set(vis.map((v) => v.req || v.codigo)).size), unidade: "requisições", contexto: `${fmtN(vis.length)} vagas no quadro` },
-    { rotulo: "Posições abertas", valor: fmtN(posAbertas), contexto: `de ${fmtN(sum(vis, "posicoes"))} solicitadas` },
+    { rotulo: "Posições abertas", valor: fmtN(posAbertas), contexto: `de ${fmtN(sum(vis, "posicoes"))} solicitadas`, parte: { valor: posAbertas, total: sum(vis, "posicoes") } },
     // Item 5: o tempo da vaga conta da aprovação até a movimentação para
     // contratação. Nestas, que ainda não fecharam, o relógio corre até hoje —
     // é a mesma conta da planilha (TM FECHAMENTO), com a data de hoje no lugar
     // da movimentação que ainda não aconteceu.
-    { rotulo: "Tempo médio da vaga", valor: fmtN(mediana(agings)), unidade: "dias", contexto: `na metade dos casos · da aprovação até hoje · 9 em cada 10 em até ${fmtN(percentil(agings, 0.9))} d` },
+    {
+      rotulo: "Tempo médio da vaga",
+      valor: fmtN(mediana(agings)),
+      unidade: "dias",
+      contexto: `na metade dos casos · da aprovação até hoje · 9 em cada 10 em até ${fmtN(percentil(agings, 0.9))} d`,
+      distribuicao: dispersao(agings),
+    },
     // Item 4: etapas como indicador, nunca somadas ao tempo da vaga.
-    { rotulo: "Indicador O&R", valor: fmtN(mediana(nums(vis, "tmOR"))), unidade: "dias", contexto: "criação até a aprovação" },
-    { rotulo: "Indicador R&S", valor: fmtN(mediana(nums(vis, "tmRS"))), unidade: "dias", contexto: "aprovação até a publicação" },
+    { rotulo: "Indicador O&R", valor: fmtN(mediana(nums(vis, "tmOR"))), unidade: "dias", contexto: "criação até a aprovação", distribuicao: dispersao(nums(vis, "tmOR")) },
+    { rotulo: "Indicador R&S", valor: fmtN(mediana(nums(vis, "tmRS"))), unidade: "dias", contexto: "aprovação até a publicação", distribuicao: dispersao(nums(vis, "tmRS")) },
     { rotulo: "Inscritos por posição", valor: fmtN(posAbertas ? inscritos / posAbertas : null), contexto: `${fmtN(inscritos)} inscritos no total` },
   ];
 
@@ -98,6 +104,20 @@ export default function PaginaVagas() {
   const porMotivo = maiores(contarPor(vis, "motivoAbertura"), 6);
   const porGestor = maiores(contarPor(vis, "gestor"), 8);
   const criadas = porMes(vis, "mesCriacao").map((x) => ({ k: fmtMes(x.k), v: x.v }));
+
+  /*
+   * Posições ao lado das vagas.
+   *
+   * Uma requisição pode pedir uma posição ou doze, e contar requisições esconde
+   * isso: dois gestores com cinco vagas cada podem estar pedindo cinco e
+   * cinquenta pessoas. As duas séries partem das mesmas chaves e da mesma
+   * ordem — quem manda é a lista de vagas, e as posições apenas a acompanham,
+   * senão as barras de baixo apontariam para a categoria errada.
+   */
+  const posPorGestor = somarPor(vis, "gestor", "posAbertas");
+  const posGestorSerie = porGestor.map((g) => posPorGestor.get(g.k) ?? 0);
+  const posPorMes = somarPor(vis, "mesCriacao", "posAbertas");
+  const posMesSerie = porMes(vis, "mesCriacao").map((x) => posPorMes.get(x.k) ?? 0);
 
   const recrutadores = Array.from(new Set(vis.map((v) => v.recrutador))).filter(Boolean);
   const seriesCiclo = [
@@ -223,16 +243,40 @@ export default function PaginaVagas() {
           <Empilhado categorias={recrutadores} series={seriesCiclo} />
         </Placa>
 
-        <Placa titulo="Vagas criadas por mês" nota="Requisições que seguem em aberto." span="rs-c4" tabela={tabelaBarras(criadas, "Mês", "Vagas")}>
-          <Colunas dados={criadas} altura={196} agora={fmtMes(mesMaximo)} />
+        <Placa
+          titulo="Vagas e posições criadas por mês"
+          nota="Requisições que seguem em aberto, e quantas pessoas elas pedem."
+          span="rs-c4"
+          legenda={[{ nome: "Vagas", cor: "var(--rs-rampa-2)" }, { nome: "Posições", cor: "var(--rs-rampa-1)" }]}
+          tabela={{
+            cabecalhos: ["Mês", "Vagas", "Posições"],
+            linhas: criadas.map((c, i) => [c.k, fmtN(c.v), fmtN(posMesSerie[i])]),
+          }}
+          total={{ rotulo: "Posições a preencher", valor: fmtN(posAbertas) }}
+        >
+          <Colunas
+            dados={criadas}
+            altura={214}
+            agora={fmtMes(mesMaximo)}
+            serieExtra={{ nome: "Posições", nomeBase: "Vagas", valores: posMesSerie }}
+          />
         </Placa>
 
         <Placa titulo="Motivo da abertura" nota="O que originou a requisição." span="rs-c6" tabela={tabelaBarras(porMotivo, "Motivo", "Vagas")}>
           <Barras dados={porMotivo} />
         </Placa>
 
-        <Placa titulo="Vagas por gestor(a)" nota="Quem tem vagas aguardando." span="rs-c6" tabela={tabelaBarras(porGestor, "Gestor(a)", "Vagas")}>
-          <Barras dados={porGestor} />
+        <Placa
+          titulo="Vagas e posições por gestor(a)"
+          nota="Quem tem requisições aguardando, e quantas pessoas elas somam."
+          span="rs-c6"
+          legenda={[{ nome: "Vagas", cor: "var(--rs-rampa-2)" }, { nome: "Posições", cor: "var(--rs-rampa-1)" }]}
+          tabela={{
+            cabecalhos: ["Gestor(a)", "Vagas", "Posições"],
+            linhas: porGestor.map((g, i) => [g.k, fmtN(g.v), fmtN(posGestorSerie[i])]),
+          }}
+        >
+          <Barras dados={porGestor} serieExtra={{ nome: "Posições", nomeBase: "Vagas", valores: posGestorSerie }} />
         </Placa>
 
         <Achados itens={achados} />

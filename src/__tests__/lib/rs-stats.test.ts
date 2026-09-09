@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   contarPor,
+  dispersao,
   distribuicaoPor,
   maiores,
   mean,
@@ -197,5 +198,32 @@ describe("maiores, o balde Outros", () => {
       { k: "b", v: 5 },
       { k: "Outros", v: 5 },
     ]);
+  });
+});
+
+describe("dispersao", () => {
+  it("devolve os quatro números com o p90 como teto da régua", () => {
+    const d = dispersao([1, 2, 3, 4, 5, 6, 7, 8, 9, 100]);
+    expect(d).toBeDefined();
+    expect(d?.teto).toBe(d?.p90);
+    // O teto é o p90 e não o máximo: um caso de 100 esmagaria a faixa contra a
+    // margem e a tira não mostraria mais nada.
+    expect(d?.teto).toBeLessThan(100);
+  });
+
+  it("mantém p25 <= mediana <= p75", () => {
+    const d = dispersao([5, 10, 15, 20, 25, 30, 35, 40]);
+    expect(d!.p25).toBeLessThanOrEqual(d!.mediana);
+    expect(d!.mediana).toBeLessThanOrEqual(d!.p75);
+  });
+
+  it("não desenha tira com amostra pequena demais para ter quartis", () => {
+    expect(dispersao([])).toBeUndefined();
+    expect(dispersao([7])).toBeUndefined();
+    expect(dispersao([1, 2, 3])).toBeUndefined();
+  });
+
+  it("não desenha tira quando o p90 é zero: dividir por ele estouraria a régua", () => {
+    expect(dispersao([0, 0, 0, 0, 0])).toBeUndefined();
   });
 });

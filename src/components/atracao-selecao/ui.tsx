@@ -34,6 +34,22 @@ export interface Leitura {
    * desenho — é isto que torna o ícone dinâmico em vez de ilustrativo.
    */
   tom?: Severidade;
+  /**
+   * A dispersão por trás da mediana, desenhada.
+   *
+   * Uma mediana sozinha esconde o que mais importa numa operação: se a metade
+   * do meio dos casos cabe em cinco dias ou em sessenta. O número já vinha no
+   * contexto, em texto — "9 em cada 10 em até 56 d" —, e texto obriga a
+   * imaginar a régua. A tira desenha a régua.
+   */
+  distribuicao?: { p25: number; mediana: number; p75: number; p90: number; teto: number };
+  /**
+   * Quanto do todo este número representa.
+   *
+   * "46 posições abertas" responde metade da pergunta; "de 128 solicitadas"
+   * responde a outra metade, e a barra responde as duas de uma vez.
+   */
+  parte?: { valor: number; total: number };
 }
 
 /**
@@ -100,9 +116,60 @@ export function FaixaLeituras({ itens }: { itens: Leitura[] }) {
             {i.valor}
             {i.unidade ? <span className="rs-unidade">{i.unidade}</span> : null}
           </p>
+          {i.distribuicao && i.distribuicao.teto > 0 ? (
+            <Dispersao {...i.distribuicao} />
+          ) : null}
+          {i.parte && i.parte.total > 0 ? (
+            <div
+              className="rs-micro"
+              role="img"
+              aria-label={`${i.parte.valor} de ${i.parte.total}`}
+            >
+              <div
+                className="rs-micro__parte"
+                style={{ width: `${Math.min(100, (i.parte.valor / i.parte.total) * 100)}%` }}
+              />
+            </div>
+          ) : null}
           {i.contexto ? <p className="rs-estado__prazo">{i.contexto}</p> : null}
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * A tira de dispersão: p25–p75 preenchidos, mediana em traço cheio, p90 marcado.
+ *
+ * Divs posicionados por porcentagem, e não SVG com viewBox: um viewBox esticado
+ * na largura do cartão esticaria junto a espessura do traço da mediana, e a
+ * mediana é justamente a marca que não pode engordar.
+ */
+function Dispersao({
+  p25,
+  mediana: med,
+  p75,
+  p90,
+  teto,
+}: {
+  p25: number;
+  mediana: number;
+  p75: number;
+  p90: number;
+  teto: number;
+}) {
+  const pc = (v: number) => Math.max(0, Math.min(100, (v / teto) * 100));
+  const a = pc(p25);
+  const b = pc(p75);
+  return (
+    <div
+      className="rs-micro"
+      role="img"
+      aria-label={`metade dos casos entre ${p25} e ${p75}, mediana ${med}, nove em cada dez até ${p90}`}
+    >
+      <div className="rs-micro__faixa" style={{ left: `${a}%`, width: `${Math.max(b - a, 1)}%` }} />
+      <div className="rs-micro__p90" style={{ left: `${pc(p90)}%` }} />
+      <div className="rs-micro__mediana" style={{ left: `${pc(med)}%` }} />
     </div>
   );
 }

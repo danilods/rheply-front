@@ -12,7 +12,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 
-import { Barras, Colunas, Placa, Funil, tabelaBarras, tabelaFunil } from "@/components/atracao-selecao/graficos";
+import { Barras, Colunas, Empilhado, Placa, Funil, tabelaBarras, tabelaFunil } from "@/components/atracao-selecao/graficos";
 import { BarraEstado, Etiqueta, FaixaLeituras, type Classe } from "@/components/atracao-selecao/ui";
 import {
   cascataFunil,
@@ -119,6 +119,7 @@ export function CorpoSinoptico({
           posicoes: doGrupo.reduce((t, v) => t + (v.posAbertas ?? 0), 0),
           vagas: doGrupo.length,
           atrasadas: atrasadasDoGrupo.length,
+          noPrazo: doGrupo.length - atrasadasDoGrupo.length,
           espera: mediana(nums(doGrupo, "aging")),
         };
       })
@@ -261,45 +262,58 @@ export function CorpoSinoptico({
       </div>
 
       {c.porGerencia.length > 1 ? (
-        <section className="rs-placa rs-c12">
-          <h3 className="rs-cabeca">Por gerência</h3>
-          <p className="rs-sub">
-            Onde o quadro está aberto e quanto já passou do prazo. É por aqui que a cobrança
-            começa: filial e área respondem por operação, gerência responde por gente.
-          </p>
-          <div data-rolagem style={{ overflowX: "auto" }}>
-            <table className="rs-tabela">
-              <thead>
-                <tr>
-                  {["Gerência", "Posições abertas", "Vagas", "Fora do prazo", "Espera mediana"].map((h, i) => (
-                    <th key={h} scope="col" className={i ? "rs-num-col" : ""}>
-                      <button type="button" tabIndex={-1} style={{ cursor: "default" }}>
-                        {h}
-                      </button>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {c.porGerencia.map((g) => (
-                  <tr key={g.k}>
-                    <td className="rs-quebra">{g.k}</td>
-                    <td className="rs-num-col">{fmtN(g.posicoes)}</td>
-                    <td className="rs-num-col">{fmtN(g.vagas)}</td>
-                    <td className="rs-num-col">
-                      {g.atrasadas ? (
-                        <Etiqueta severidade="alarme">{fmtN(g.atrasadas)}</Etiqueta>
-                      ) : (
-                        <span style={{ color: "var(--rs-tinta-3)" }}>—</span>
-                      )}
-                    </td>
-                    <td className="rs-num-col">{fmtN(g.espera)} d</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <>
+          {/* A tabela que morava aqui pedia que o leitor comparasse cinco
+              colunas de números de cabeça para descobrir quem está segurando o
+              quadro. São duas perguntas distintas — quanto e há quanto tempo —
+              e cada uma virou uma placa. Os cinco números continuam inteiros na
+              tabela gêmea de cada uma. */}
+          <Placa
+            titulo="Vagas por gerência, dentro e fora do prazo"
+            nota="Onde o quadro está aberto e quanto já passou do prazo. Filial e área respondem por operação; gerência responde por gente."
+            span="rs-c7"
+            legenda={[
+              { nome: "No prazo", cor: "var(--rs-rampa-2)" },
+              { nome: "Fora do prazo", cor: "var(--rs-alarme)" },
+            ]}
+            total={{ rotulo: "Posições abertas no total", valor: fmtN(c.porGerencia.reduce((t, g) => t + g.posicoes, 0)) }}
+            tabela={{
+              cabecalhos: ["Gerência", "Posições abertas", "Vagas", "Fora do prazo", "Espera mediana"],
+              linhas: c.porGerencia.map((g) => [
+                g.k,
+                fmtN(g.posicoes),
+                fmtN(g.vagas),
+                g.atrasadas ? fmtN(g.atrasadas) : "—",
+                `${fmtN(g.espera)} d`,
+              ]),
+            }}
+          >
+            <Empilhado
+              categorias={c.porGerencia.map((g) => g.k)}
+              series={[
+                { nome: "No prazo", cor: "var(--rs-rampa-2)", valores: Object.fromEntries(c.porGerencia.map((g) => [g.k, g.noPrazo])) },
+                { nome: "Fora do prazo", cor: "var(--rs-alarme)", valores: Object.fromEntries(c.porGerencia.map((g) => [g.k, g.atrasadas])) },
+              ]}
+            />
+          </Placa>
+
+          <Placa
+            titulo="Espera mediana por gerência"
+            nota="Dias corridos desde a aprovação, na metade dos casos. O traço marca o alvo dos cargos operacionais."
+            span="rs-c5"
+            tabela={{
+              cabecalhos: ["Gerência", "Espera mediana"],
+              linhas: c.porGerencia.map((g) => [g.k, `${fmtN(g.espera)} d`]),
+            }}
+          >
+            <Barras
+              dados={c.porGerencia.map((g) => ({ k: g.k, v: g.espera ?? 0 }))}
+              unidade=" d"
+              limiar={{ valor: prazoAlvo("Promotor(a) de Vendas"), rotulo: `alvo de ${prazoAlvo("Promotor(a) de Vendas")} d` }}
+              destaque={new Set(c.porGerencia.filter((g) => (g.espera ?? 0) > prazoAlvo("Promotor(a) de Vendas")).map((g) => g.k))}
+            />
+          </Placa>
+        </>
       ) : null}
 
       <Placa

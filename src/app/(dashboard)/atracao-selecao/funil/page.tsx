@@ -205,7 +205,7 @@ export default function PaginaFunil() {
           <Barras dados={porOrigem} />
         </Placa>
 
-        <Placa titulo="Candidatos por posição" nota="Onde o esforço de seleção está." span="rs-c6" tabela={tabelaBarras(porPosicao, "Posição", "Candidatos")}>
+        <Placa titulo="Candidatos por posição" span="rs-c6" tabela={tabelaBarras(porPosicao, "Posição", "Candidatos")}>
           <Barras dados={porPosicao} />
         </Placa>
 
