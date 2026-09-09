@@ -20,12 +20,16 @@ const SEVERIDADE: Record<ClasseDesfecho, Severidade> = {
   seminfo: "normal",
 };
 
-/** Mesma lei do desfecho: só o que precisa de ação carrega cor. */
+/*
+ * O mesmo conceito recebe a mesma cor que em COR_DESFECHO — categoria de motivo
+ * e classe de desfecho falam da mesma coisa vista por dois ângulos, e trocar a
+ * cor entre as duas placas obrigaria a reaprender a legenda no meio da leitura.
+ */
 const COR_CATEGORIA: Record<string, string> = {
-  "Não compareceu ou sem contato": "var(--rs-rampa-4)",
+  "Não compareceu ou sem contato": "var(--rs-cat-2)",
   "Condições da vaga (candidato declinou)": "var(--rs-atencao)",
-  "Perfil ou requisito (empresa reprovou)": "var(--rs-rampa-1)",
-  "Aprovado / carta oferta": "var(--rs-rampa-4)",
+  "Perfil ou requisito (empresa reprovou)": "var(--rs-cat-1)",
+  "Aprovado / carta oferta": "var(--rs-cat-3)",
   "Sem motivo registrado": "var(--rs-serie-nula)",
 };
 

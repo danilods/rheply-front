@@ -71,6 +71,12 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   --rs-rampa-4: var(--rh-rampa-4);
   --rs-serie-nula: var(--rh-nulo);
 
+  /* Matiz para categoria, luminância para magnitude. */
+  --rs-cat-1: var(--rh-cat-1);
+  --rs-cat-2: var(--rh-cat-2);
+  --rs-cat-3: var(--rh-cat-3);
+  --rs-cat-4: var(--rh-cat-4);
+
   --rs-foco: var(--rh-foco);
   --rs-sombra: var(--rh-sombra);
 

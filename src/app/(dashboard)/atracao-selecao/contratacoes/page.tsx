@@ -78,8 +78,8 @@ export default function PaginaContratacoes() {
 
   const mesesSerie = porMes(vis, "mes").map((x) => x.k);
   const seriesMotivo = [
-    { nome: "Substituição de pessoal", cor: "var(--rs-rampa-2)", valores: Object.fromEntries(mesesSerie.map((m) => [fmtMes(m), vis.filter((c) => c.mes === m && c.motivoReq === "Substituição de pessoal").length])) },
-    { nome: "Aumento de quadro", cor: "var(--rs-rampa-4)", valores: Object.fromEntries(mesesSerie.map((m) => [fmtMes(m), vis.filter((c) => c.mes === m && c.motivoReq === "Aumento de quadro").length])) },
+    { nome: "Substituição de pessoal", cor: "var(--rs-cat-1)", valores: Object.fromEntries(mesesSerie.map((m) => [fmtMes(m), vis.filter((c) => c.mes === m && c.motivoReq === "Substituição de pessoal").length])) },
+    { nome: "Aumento de quadro", cor: "var(--rs-cat-2)", valores: Object.fromEntries(mesesSerie.map((m) => [fmtMes(m), vis.filter((c) => c.mes === m && c.motivoReq === "Aumento de quadro").length])) },
   ];
 
   const achados: React.ReactNode[] = [];

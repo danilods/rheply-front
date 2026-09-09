@@ -72,6 +72,33 @@
   --rh-rampa-4: #172554;
   --rh-nulo: #94a3b8;       /* dado ausente, que não é uma categoria */
 
+  /*
+   * A paleta categórica: matiz para o que não tem ordem.
+   *
+   * Séries nominais vinham pintadas com degraus da rampa ordinal, e isso é um
+   * erro de significado antes de ser um empobrecimento visual: "Contratado",
+   * "Em processo" e "Não compareceu" não estão em escala, mas a rampa afirma
+   * que sim. Categoria pede matiz; magnitude pede luminância.
+   *
+   * São quatro e não seis porque o vermelho e o âmbar estão reservados para
+   * estado, o que fecha metade do círculo cromático — e nas matizes frias que
+   * sobram, cinco tons de luminância parecida ficam indistinguíveis sob
+   * deuteranopia. O terceiro tom é o próprio teal de "em processo": quando essa
+   * for a categoria, ela já chega com a cor certa.
+   *
+   * Separação mínima de ΔE 13,4 entre quaisquer dois, sob visão normal e sob os
+   * três tipos de daltonismo — acima dos 8,2 da Okabe-Ito, que é o padrão de
+   * referência para paleta categórica segura.
+   */
+  --rh-cat-1: #1e3a8a;
+  --rh-cat-2: #7c3aed;
+  --rh-cat-3: #0f766e;
+  --rh-cat-4: #93c5fd;
+  --rh-sobre-cat-1: #ffffff;   /* 10,4:1 */
+  --rh-sobre-cat-2: #ffffff;   /*  5,7:1 */
+  --rh-sobre-cat-3: #ffffff;   /*  5,5:1 */
+  --rh-sobre-cat-4: #0f172a;   /*  9,9:1 */
+
   /* A tinta que vai POR CIMA de cada preenchimento vem junto com ele,
      em vez de ser adivinhada por luminância em tempo de execução. */
   /* Tinta declarada por degrau, nunca adivinhada por luminância em tempo de
@@ -127,6 +154,18 @@
   --rh-rampa-3: #93c5fd;
   --rh-rampa-4: #dbeafe;
   --rh-nulo: #64748b;
+
+  /* No escuro os quatro sobem em luminância para se descolarem da placa. A
+     separação cai para ΔE 8,1 — o piso da Okabe-Ito — porque sobre fundo
+     escuro a faixa de luminância utilizável é mais estreita. */
+  --rh-cat-1: #60a5fa;
+  --rh-cat-2: #c4b5fd;
+  --rh-cat-3: #2dd4bf;
+  --rh-cat-4: #1d4ed8;
+  --rh-sobre-cat-1: #0f172a;
+  --rh-sobre-cat-2: #0f172a;
+  --rh-sobre-cat-3: #0f172a;
+  --rh-sobre-cat-4: #ffffff;
 
   --rh-sobre-rampa-1: #ffffff;   /*  5,2:1 */
   --rh-sobre-rampa-2: #0f172a;   /*  6,0:1 */

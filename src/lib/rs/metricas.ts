@@ -150,12 +150,22 @@ export const ORDEM_DESFECHO: readonly ClasseDesfecho[] = [
  * compareceu no alarme, quem declinou na atenção — e o registro ausente fica
  * no cinza de dado que falta. Nenhuma categoria ordinária gasta vermelho.
  */
+/*
+ * Desfecho é categoria, não escala: ser reprovado não é "mais" que declinar.
+ * Por isso a paleta aqui é a categórica, de matiz, e não a rampa ordinal, que
+ * antes afirmava uma ordem entre desfechos que não existe.
+ *
+ * Duas exceções guardam significado: aprovado fica no teal, a única matiz do
+ * sistema com valência positiva, e declinou fica na cor de atenção, porque é
+ * um desfecho sobre o qual se age. Sem informação fica no cinza de dado
+ * ausente, que não é uma categoria.
+ */
 export const COR_DESFECHO: Record<ClasseDesfecho, string> = {
-  aprovado: "var(--rs-rampa-4)",
-  processo: "var(--rs-rampa-2)",
-  reprovado: "var(--rs-rampa-1)",
+  aprovado: "var(--rs-cat-3)",
+  processo: "var(--rs-cat-4)",
+  reprovado: "var(--rs-cat-1)",
   declinou: "var(--rs-atencao)",
-  noshow: "var(--rs-alarme)",
+  noshow: "var(--rs-cat-2)",
   seminfo: "var(--rs-serie-nula)",
 };
 

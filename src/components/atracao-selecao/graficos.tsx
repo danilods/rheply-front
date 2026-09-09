@@ -156,6 +156,10 @@ function corDe(cor: string | undefined, p: Paleta, reserva: string): string {
   if (cor.includes("--rs-rampa-2") || cor.includes("--rh-rampa-2")) return p.rampa[1];
   if (cor.includes("--rs-rampa-3") || cor.includes("--rh-rampa-3")) return p.rampa[2];
   if (cor.includes("--rs-rampa-4") || cor.includes("--rh-rampa-4")) return p.rampa[3];
+  if (cor.includes("cat-1")) return p.cat[0];
+  if (cor.includes("cat-2")) return p.cat[1];
+  if (cor.includes("cat-3")) return p.cat[2];
+  if (cor.includes("cat-4")) return p.cat[3];
   if (cor.includes("serie-nula") || cor.includes("--rh-nulo")) return p.nulo;
   if (cor.includes("alarme")) return p.alarme;
   if (cor.includes("atencao")) return p.atencao;
@@ -187,6 +191,8 @@ function degrauDe(valor: number, teto: number, p: Paleta): string {
 function tintaSobre(preenchimento: string, p: Paleta): string {
   const i = p.rampa.indexOf(preenchimento);
   if (i >= 0) return p.sobreRampa[i];
+  const j = p.cat.indexOf(preenchimento);
+  if (j >= 0) return p.sobreCat[j];
   if (preenchimento === p.nulo) return p.sobreNulo;
   if (preenchimento === p.alarme) return p.sobreAlarme;
   return p.sobreRampa[2];
@@ -238,6 +244,19 @@ export interface ItemBarra {
   cor?: string;
   extra?: string;
 }
+
+/**
+ * As duas cores do par, num lugar só.
+ *
+ * A legenda é escrita na página e o desenho acontece aqui. Quando cada lado
+ * escolhe a própria cor, os dois divergem em silêncio na primeira mudança de
+ * rampa — e legenda que anuncia uma cor que a barra não tem é pior do que
+ * legenda nenhuma. Página e instrumento passam a ler daqui.
+ */
+export const COR_PAR = {
+  base: "var(--rs-rampa-3)",
+  extra: "var(--rs-rampa-1)",
+} as const;
 
 /** Acima disto a leitura vira rolagem, e a rolagem precisa de controle. */
 const LINHAS_SEM_ZOOM = 14;
@@ -361,8 +380,12 @@ export function Barras({
                  A palavra e a forma continuam carregando o estado; a cor aqui
                  carrega magnitude. */
               if (destaque?.has(it.k)) return p.rampa[3];
-              // Cor declarada pela página manda; sem ela, quem escolhe é o valor.
-              return it.cor ? corDe(it.cor, p, p.rampa[1]) : degrauDe(it.v, tetoRampa, p);
+              /* Cor declarada pela página manda. Sem ela, quem escolhe é o
+                 valor — exceto quando há série pareada: aí a placa traz legenda,
+                 e legenda que anuncia uma cor sobre barras que variam de cor é
+                 legenda que mente. Com par, a série inteira fica num degrau só. */
+              if (it.cor) return corDe(it.cor, p, p.rampa[1]);
+              return serieExtra ? p.rampa[2] : degrauDe(it.v, tetoRampa, p);
             },
           },
           emphasis: { itemStyle: { color: p.foco } },

@@ -4,7 +4,7 @@
 
 import { useMemo } from "react";
 
-import { Barras, Colunas, Empilhado, Placa, tabelaBarras, tabelaEmpilhada } from "@/components/atracao-selecao/graficos";
+import { Barras, COR_PAR, Colunas, Empilhado, Placa, tabelaBarras, tabelaEmpilhada } from "@/components/atracao-selecao/graficos";
 import {
   Achados,
   BarraEstado,
@@ -129,8 +129,8 @@ export default function PaginaVagas() {
 
   const recrutadores = Array.from(new Set(vis.map((v) => v.recrutador))).filter(Boolean);
   const seriesCiclo = [
-    { nome: "O&R, criação até aprovação", cor: "var(--rs-rampa-2)", valores: Object.fromEntries(recrutadores.map((r) => [r, mediana(nums(vis.filter((v) => v.recrutador === r), "tmOR")) ?? 0])) },
-    { nome: "R&S, aprovação até publicação", cor: "var(--rs-rampa-4)", valores: Object.fromEntries(recrutadores.map((r) => [r, mediana(nums(vis.filter((v) => v.recrutador === r), "tmRS")) ?? 0])) },
+    { nome: "O&R, criação até aprovação", cor: "var(--rs-cat-1)", valores: Object.fromEntries(recrutadores.map((r) => [r, mediana(nums(vis.filter((v) => v.recrutador === r), "tmOR")) ?? 0])) },
+    { nome: "R&S, aprovação até publicação", cor: "var(--rs-cat-3)", valores: Object.fromEntries(recrutadores.map((r) => [r, mediana(nums(vis.filter((v) => v.recrutador === r), "tmRS")) ?? 0])) },
   ];
 
   /* -------- achados -------- */
@@ -239,7 +239,7 @@ export default function PaginaVagas() {
           titulo="Há quanto tempo estão abertas"
           nota="Dias corridos desde a aprovação, em requisições e nas pessoas que elas pedem."
           span="rs-c5"
-          legenda={[{ nome: "Requisições", cor: "var(--rs-rampa-2)" }, { nome: "Posições", cor: "var(--rs-rampa-1)" }]}
+          legenda={[{ nome: "Requisições", cor: COR_PAR.base }, { nome: "Posições", cor: COR_PAR.extra }]}
           tabela={{
             cabecalhos: ["Faixa", "Requisições", "Posições"],
             linhas: porFaixa.map((f, i) => [f.k, fmtN(f.v), fmtN(posPorFaixa[i])]),
@@ -267,7 +267,7 @@ export default function PaginaVagas() {
           titulo="Vagas e posições criadas por mês"
           nota="Requisições que seguem em aberto, e quantas pessoas elas pedem."
           span="rs-c4"
-          legenda={[{ nome: "Vagas", cor: "var(--rs-rampa-2)" }, { nome: "Posições", cor: "var(--rs-rampa-1)" }]}
+          legenda={[{ nome: "Vagas", cor: COR_PAR.base }, { nome: "Posições", cor: COR_PAR.extra }]}
           tabela={{
             cabecalhos: ["Mês", "Vagas", "Posições"],
             linhas: criadas.map((c, i) => [c.k, fmtN(c.v), fmtN(posMesSerie[i])]),
@@ -290,7 +290,7 @@ export default function PaginaVagas() {
           titulo="Vagas e posições por gestor(a)"
           nota="Quem tem requisições aguardando, e quantas pessoas elas somam."
           span="rs-c6"
-          legenda={[{ nome: "Vagas", cor: "var(--rs-rampa-2)" }, { nome: "Posições", cor: "var(--rs-rampa-1)" }]}
+          legenda={[{ nome: "Vagas", cor: COR_PAR.base }, { nome: "Posições", cor: COR_PAR.extra }]}
           tabela={{
             cabecalhos: ["Gestor(a)", "Vagas", "Posições"],
             linhas: porGestor.map((g, i) => [g.k, fmtN(g.v), fmtN(posGestorSerie[i])]),

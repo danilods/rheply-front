@@ -15,7 +15,7 @@
 
 import { useMemo } from "react";
 
-import { Barras, Colunas, Faixa, Placa, tabelaBarras, tabelaFaixa } from "@/components/atracao-selecao/graficos";
+import { Barras, COR_PAR, Colunas, Faixa, Placa, tabelaBarras, tabelaFaixa } from "@/components/atracao-selecao/graficos";
 import { Achados, FaixaLeituras, Forte, Regua, Tabela, type Coluna } from "@/components/atracao-selecao/ui";
 import { fmtBRL, fmtData, fmtMes, fmtN, fmtPct, RAMPA_AGING } from "@/lib/rs/metricas";
 import { contarPor, dispersao, distribuicaoPor, maiores, mediana, medianaPorGrupo, nums, porMes, proporcao } from "@/lib/rs/stats";
@@ -94,9 +94,7 @@ export default function PaginaHistorico() {
      cruza; no par, o vão entre as colunas é o trecho que não é recrutamento —
      aprovação, agenda de gestor e o que mais segurar a vaga depois da carta. */
   const tmPorMes = meses_.map((m) => mediana(nums(vis.filter((c) => c.mes === m.k), "tmPosicao")) ?? 0);
-  const recPorMes = meses_.map(
-    (m) => mediana(nums(vis.filter((c) => c.mes === m.k), "dInscAceite").filter((d) => d >= 0)) ?? 0,
-  );
+  const recPorMes = meses_.map((m) => mediana(nums(vis.filter((c) => c.mes === m.k), "tmRS")) ?? 0);
   const porOrigem = maiores(contarPor(vis, "origem"), 6);
 
   const achados: React.ReactNode[] = [];
@@ -191,11 +189,11 @@ export default function PaginaHistorico() {
 
         <Placa
           titulo="Tempo da vaga e do recrutamento por mês"
-          nota="Medianas em dias. O recrutamento corre por dentro do tempo da vaga; o vão entre as colunas é o que está fora do alcance dele."
+          nota="Em dias. O recrutamento é o trecho da aprovação até a vaga ir ao ar; o tempo da vaga vai da aprovação até a movimentação."
           span="rs-c12"
           legenda={[
-            { nome: "Tempo da vaga, da aprovação à movimentação", cor: "var(--rs-rampa-2)" },
-            { nome: "Recrutamento, da inscrição ao aceite", cor: "var(--rs-rampa-1)" },
+            { nome: "Tempo da vaga, da aprovação à movimentação", cor: COR_PAR.base },
+            { nome: "Recrutamento, da aprovação à publicação", cor: COR_PAR.extra },
           ]}
           tabela={{
             cabecalhos: ["Mês", "Tempo da vaga (d)", "Recrutamento (d)"],

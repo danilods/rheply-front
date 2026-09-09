@@ -39,10 +39,13 @@ export interface Paleta {
   atencao: string;
   processo: string;
   rampa: [string, string, string, string];
+  /** Matiz para categoria, sem ordem implícita. Ver a lei de cor no DESIGN.md. */
+  cat: [string, string, string, string];
   nulo: string;
   foco: string;
   /** Tinta declarada para ir por cima de cada preenchimento, na mesma ordem. */
   sobreRampa: [string, string, string, string];
+  sobreCat: [string, string, string, string];
   sobreNulo: string;
   sobreAlarme: string;
   fonte: string;
@@ -60,10 +63,12 @@ const PADRAO: Paleta = {
   alarme: "#b91c1c",
   atencao: "#d97706",
   processo: "#0f766e",
-  rampa: ["#3b82f6", "#2563eb", "#1e40af", "#172554"],
+  rampa: ["#3b82f6", "#4f46e5", "#4c1d95", "#172554"],
+  cat: ["#1e3a8a", "#7c3aed", "#0f766e", "#93c5fd"],
   nulo: "#94a3b8",
   foco: "#0ea5a4",
   sobreRampa: ["#0f172a", "#ffffff", "#ffffff", "#ffffff"],
+  sobreCat: ["#ffffff", "#ffffff", "#ffffff", "#0f172a"],
   sobreNulo: "#0f172a",
   sobreAlarme: "#ffffff",
   fonte: "system-ui, sans-serif",
@@ -110,6 +115,12 @@ function lerPaleta(): Paleta {
       t("--rh-rampa-3", PADRAO.rampa[2]),
       t("--rh-rampa-4", PADRAO.rampa[3]),
     ],
+    cat: [
+      t("--rh-cat-1", PADRAO.cat[0]),
+      t("--rh-cat-2", PADRAO.cat[1]),
+      t("--rh-cat-3", PADRAO.cat[2]),
+      t("--rh-cat-4", PADRAO.cat[3]),
+    ],
     nulo: t("--rh-nulo", PADRAO.nulo),
     foco: t("--rh-foco", PADRAO.foco),
     sobreRampa: [
@@ -117,6 +128,12 @@ function lerPaleta(): Paleta {
       t("--rh-sobre-rampa-2", PADRAO.sobreRampa[1]),
       t("--rh-sobre-rampa-3", PADRAO.sobreRampa[2]),
       t("--rh-sobre-rampa-4", PADRAO.sobreRampa[3]),
+    ],
+    sobreCat: [
+      t("--rh-sobre-cat-1", PADRAO.sobreCat[0]),
+      t("--rh-sobre-cat-2", PADRAO.sobreCat[1]),
+      t("--rh-sobre-cat-3", PADRAO.sobreCat[2]),
+      t("--rh-sobre-cat-4", PADRAO.sobreCat[3]),
     ],
     sobreNulo: t("--rh-sobre-nulo", PADRAO.sobreNulo),
     sobreAlarme: t("--rh-sobre-alarme", PADRAO.sobreAlarme),
