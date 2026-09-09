@@ -1,73 +1,37 @@
 "use client";
 
 /**
- * Instrumentos do quadro sinóptico.
+ * Instrumentos do quadro.
  *
- * A cor do dado vive presa dentro da moldura da placa. Fora dela, a interface é
- * tinta sobre cinza, e cor significa estado anormal. É essa quarentena que
- * impede o painel de virar um mosaico onde tudo compete.
+ * O desenho é do ECharts; a identidade continua sendo do CSS. A cor do dado
+ * vive presa dentro da moldura da placa — fora dela a interface é tinta sobre
+ * cinza, e cor significa estado anormal. É essa quarentena que impede o painel
+ * de virar um mosaico onde tudo compete, e ela não afrouxou por trocarmos de
+ * motor: nenhum instrumento aqui chama a paleta categórica do ECharts.
  *
- * Marcas finas, folga de 2px na cor da superfície entre segmentos, grade em fio
- * sólido, rótulo direto só onde ele muda a leitura. Cada instrumento devolve
- * também a tabela equivalente: nenhum valor depende de passar o mouse.
+ * O quadro é lido de perto, numa mesa, por quem está investigando. Por isso o
+ * sobrevoo virou instrumento de primeira classe e as séries longas ganharam
+ * zoom. Mas a regra antiga não caiu: nenhum valor existe *só* no sobrevoo. Cada
+ * instrumento devolve a tabela equivalente, e ela continua sendo a via de quem
+ * não usa mouse.
  */
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 
 import { fmtN, fmtPct } from "@/lib/rs/metricas";
-
-/* ------------------------------------------------------------------ *
- * Medição e dica
- * ------------------------------------------------------------------ */
-
-/** Largura real do contêiner: o viewBox usa pixels, então o texto não escala. */
-function useLargura<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-  const [largura, setLargura] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const medir = () => setLargura(el.clientWidth);
-    medir();
-    if (typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(medir);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  return { ref, largura };
-}
-
-interface Dica {
-  rotulo: string;
-  valor: string;
-  x: number;
-  y: number;
-}
-
-function useDica() {
-  const [dica, setDica] = useState<Dica | null>(null);
-  const mostrar =
-    (rotulo: string, valor: string) => (e: React.MouseEvent | React.FocusEvent) => {
-      const caixa = (e.currentTarget as SVGElement).getBoundingClientRect();
-      setDica({ rotulo, valor, x: caixa.left + caixa.width / 2, y: caixa.top });
-    };
-  return { dica, mostrar, esconder: () => setDica(null) };
-}
-
-function Dica({ dica }: { dica: Dica | null }) {
-  if (!dica) return null;
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="rs-dica"
-      style={{ left: dica.x, top: dica.y - 10, transform: "translate(-50%, -100%)" }}
-    >
-      {dica.rotulo}
-      <b>{dica.valor}</b>
-    </div>
-  );
-}
+import {
+  Grafico,
+  dica,
+  eixoCategoria,
+  eixoValor,
+  usePaleta,
+  TIPO,
+  type EChartsOption,
+  type Paleta,
+  type ParamRotulo,
+  type RenderAPI,
+  type RenderParams,
+} from "./motor";
 
 /* ------------------------------------------------------------------ *
  * Placa: a moldura onde o dado (e a cor) vivem
@@ -173,50 +137,49 @@ function Vazio({ mensagem = "Sem registros para este recorte" }: { mensagem?: st
 }
 
 /* ------------------------------------------------------------------ *
- * Formas
+ * Tradução de cor
  * ------------------------------------------------------------------ */
 
-/** Barra horizontal: base reta, ponta do dado arredondada em 4px. */
-function barraH(x: number, y: number, w: number, h: number): string {
-  const r = Math.min(4, Math.max(0, w));
-  if (w <= r) return `M${x} ${y} h${Math.max(w, 1)} v${h} h${-Math.max(w, 1)} Z`;
-  return `M${x} ${y} H${x + w - r} a${r} ${r} 0 0 1 ${r} ${r} V${y + h - r} a${r} ${r} 0 0 1 ${-r} ${r} H${x} Z`;
-}
-
-/** Coluna vertical: base reta, topo arredondado. */
-function coluna(x: number, y: number, w: number, h: number): string {
-  const r = Math.min(4, Math.max(0, h));
-  if (h <= r) return `M${x} ${y} h${w} v${Math.max(h, 1)} h${-w} Z`;
-  return `M${x} ${y + h} V${y + r} a${r} ${r} 0 0 1 ${r} ${-r} H${x + w - r} a${r} ${r} 0 0 1 ${r} ${r} V${y + h} Z`;
-}
-
 /**
- * Tinta que vai por cima de um segmento colorido.
+ * De token CSS para cor literal.
  *
- * Não se adivinha por luminância em tempo de execução: cada preenchimento do
- * sistema já vem com a sua tinta declarada em globals.css, e as duas trocam
- * juntas quando o tema troca. Adivinhar daria certo num tema e erraria no
- * outro, porque no escuro o preenchimento claro é que pede tinta escura.
+ * As páginas continuam declarando a cor como `var(--rs-rampa-2)`, que é a forma
+ * certa de falar de cor neste produto. O ECharts, porém, precisa do valor
+ * resolvido para calcular realce e sombra — entregar-lhe a string `var(...)`
+ * devolve um preenchimento preto sem erro nenhum no console. A tradução mora
+ * aqui, e só aqui.
  */
-const TINTA_SOBRE: ReadonlyArray<[string, string]> = [
-  ["--rs-rampa-1", "var(--rh-sobre-rampa-1)"],
-  ["--rs-rampa-2", "var(--rh-sobre-rampa-2)"],
-  ["--rs-rampa-3", "var(--rh-sobre-rampa-3)"],
-  ["--rs-rampa-4", "var(--rh-sobre-rampa-4)"],
-  ["--rs-serie-nula", "var(--rh-sobre-nulo)"],
-  ["--rs-alarme", "var(--rh-sobre-alarme)"],
-  ["--rs-atencao", "var(--rh-sobre-atencao)"],
-  ["--rs-processo", "var(--rh-sobre-processo)"],
-];
-const tintaSobre = (cor: string) =>
-  TINTA_SOBRE.find(([token]) => cor.includes(token))?.[1] ?? "var(--rh-sobre-rampa-3)";
+function corDe(cor: string | undefined, p: Paleta, reserva: string): string {
+  if (!cor) return reserva;
+  if (cor.startsWith("#") || cor.startsWith("rgb")) return cor;
+  if (cor.includes("--rs-rampa-1") || cor.includes("--rh-rampa-1")) return p.rampa[0];
+  if (cor.includes("--rs-rampa-2") || cor.includes("--rh-rampa-2")) return p.rampa[1];
+  if (cor.includes("--rs-rampa-3") || cor.includes("--rh-rampa-3")) return p.rampa[2];
+  if (cor.includes("--rs-rampa-4") || cor.includes("--rh-rampa-4")) return p.rampa[3];
+  if (cor.includes("serie-nula") || cor.includes("--rh-nulo")) return p.nulo;
+  if (cor.includes("alarme")) return p.alarme;
+  if (cor.includes("atencao")) return p.atencao;
+  if (cor.includes("processo")) return p.processo;
+  return reserva;
+}
+
+/** A tinta que vai por cima de um preenchimento, declarada e não adivinhada. */
+function tintaSobre(preenchimento: string, p: Paleta): string {
+  const i = p.rampa.indexOf(preenchimento);
+  if (i >= 0) return p.sobreRampa[i];
+  if (preenchimento === p.nulo) return p.sobreNulo;
+  if (preenchimento === p.alarme) return p.sobreAlarme;
+  return p.sobreRampa[2];
+}
 
 /**
  * Corte de rótulo que preserva o que distingue.
  *
  * "Promotor(a) de Vendas · Belém" e "Promotor(a) de Vendas · Macapá" cortados
- * pela ponta viram duas linhas idênticas, e duas linhas idênticas num quadro
- * de operação são pior que nenhuma. Num rótulo composto o meio é o que cede.
+ * pela ponta viram duas linhas idênticas, e duas linhas idênticas num quadro de
+ * operação são pior que nenhuma. Num rótulo composto o meio é o que cede — e é
+ * exatamente isso que o `overflow: truncate` do ECharts não sabe fazer, razão
+ * de esta função ter sobrevivido à troca de motor.
  */
 function cortar(s: string, max: number): string {
   if (s.length <= max) return s;
@@ -229,23 +192,20 @@ function cortar(s: string, max: number): string {
   return `${s.slice(0, Math.max(1, max - 1))}…`;
 }
 
-/**
- * Escala do eixo.
+/*
+ * A calha do eixo e o orçamento de caracteres.
  *
- * O passo é que precisa ser redondo, não o teto: dividir um teto redondo por
- * quatro devolve 0 · 38 · 75 · 113 · 150, que ninguém lê de longe. Escolhendo
- * primeiro um passo de 1, 2, 2,5 ou 5 vezes uma potência de dez, o teto sai
- * redondo por consequência e as marcas caem em números inteiros.
+ * Os dois números precisam sair do mesmo cálculo. Reservar a largura com uma
+ * constante e depois dividi-la pela mesma constante para saber quantas letras
+ * cabem perde um caractere no arredondamento: "Filial 10 · Região Norte" tem 24
+ * letras, a calha reservava 170px e o orçamento devolvia 23, e o rótulo era
+ * cortado exatamente onde estava o número que o distingue dos vizinhos.
  */
-function escala(maiorValor: number, alvo = 5): { teto: number; marcas: number[] } {
-  const valor = Math.max(maiorValor, 1);
-  const bruto = valor / alvo;
-  const p = Math.pow(10, Math.floor(Math.log10(bruto)));
-  const passo = [1, 2, 2.5, 5, 10].map((m) => m * p).find((s) => s >= bruto) ?? 10 * p;
-  const teto = Math.ceil(valor / passo) * passo;
-  const marcas: number[] = [];
-  for (let v = 0; v <= teto + passo / 1000; v += passo) marcas.push(Math.round(v * 1000) / 1000);
-  return { teto, marcas };
+const PX_POR_LETRA = 7.1;
+function calha(chaves: string[], teto = 30) {
+  const letras = Math.max(...chaves.map((k) => Math.min(k.length, teto)));
+  const largura = Math.min(300, Math.max(76, Math.round(letras * PX_POR_LETRA)));
+  return { largura, letras: Math.max(letras, Math.floor(largura / PX_POR_LETRA)) };
 }
 
 /* ------------------------------------------------------------------ *
@@ -258,6 +218,9 @@ export interface ItemBarra {
   cor?: string;
   extra?: string;
 }
+
+/** Acima disto a leitura vira rolagem, e a rolagem precisa de controle. */
+const LINHAS_SEM_ZOOM = 14;
 
 export function Barras({
   dados,
@@ -274,82 +237,121 @@ export function Barras({
   limiar?: { valor: number; rotulo: string };
   max?: number;
 }) {
-  const { ref, largura } = useLargura<HTMLDivElement>();
-  const { dica, mostrar, esconder } = useDica();
+  const p = usePaleta();
+  const vazio = !dados.length || dados.every((d) => !d.v);
 
-  const corpo = (() => {
-    if (!largura || !dados.length || dados.every((d) => !d.v)) return null;
-    // Numa placa estreita o rótulo precisa de uma fatia maior, senão dois cargos
-    // do mesmo prefixo viram a mesma linha cortada.
-    const wRot = Math.min(300, Math.max(80, Math.round(largura * (largura < 470 ? 0.46 : 0.36))));
-    const x0 = wRot + 12;
-    const wPlot = Math.max(40, largura - x0 - 56);
-    const hBarra = 15;
-    const passo = hBarra + 12;
-    const hLim = limiar ? 17 : 0;
-    const altura = dados.length * passo + 6 + hLim;
-    const teto = max ?? Math.max(...dados.map((d) => d.v), 1);
+  const visiveis = Math.min(dados.length, LINHAS_SEM_ZOOM);
+  const altura = visiveis * 30 + (limiar ? 34 : 18);
 
-    return (
-      <svg viewBox={`0 0 ${largura} ${altura}`} width="100%" height={altura} role="img">
-        {limiar && limiar.valor <= teto
-          ? (() => {
-              const x = x0 + (wPlot * limiar.valor) / teto;
-              return (
-                <g key="limiar">
-                  <line className="rs-g-limiar" x1={x} y1={0} x2={x} y2={dados.length * passo - 5} />
-                  <text
-                    className="rs-t-limiar"
-                    x={x}
-                    y={altura - 3}
-                    textAnchor={x > largura * 0.6 ? "end" : "start"}
-                  >
-                    {limiar.rotulo}
-                  </text>
-                </g>
-              );
-            })()
-          : null}
+  const option = useMemo<EChartsOption>(() => {
+    const { largura: wRot, letras } = calha(dados.map((d) => d.k));
+    const comZoom = dados.length > LINHAS_SEM_ZOOM;
 
-        {dados.map((d, i) => {
-          const y = i * passo;
-          const w = (wPlot * d.v) / teto;
-          const fraca = destaque ? !destaque.has(d.k) : false;
-          const texto = `${formatar(d.v)}${unidade}${d.extra ? ` · ${d.extra}` : ""}`;
-          return (
-            <g key={d.k}>
-              <text className="rs-t-rotulo" x={wRot} y={y + hBarra - 2} textAnchor="end">
-                {cortar(d.k, Math.floor(wRot / 6.3))}
-              </text>
-              <path
-                d={barraH(x0, y, w, hBarra)}
-                className={fraca ? "rs-mk rs-mk--fraca" : "rs-mk"}
-                style={d.cor ? { fill: d.cor } : undefined}
-                tabIndex={dados.length <= 16 ? 0 : -1}
-                role="img"
-                aria-label={`${d.k}: ${texto}`}
-                onMouseEnter={mostrar(d.k, texto)}
-                onMouseLeave={esconder}
-                onFocus={mostrar(d.k, texto)}
-                onBlur={esconder}
-              />
-              <text className="rs-t-valor" x={x0 + w + 7} y={y + hBarra - 2}>
-                {formatar(d.v)}
-                {unidade}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    );
-  })();
+    return {
+      animationDuration: 320,
+      grid: { left: wRot + 10, right: comZoom ? 78 : 58, top: limiar ? 30 : 6, bottom: 4, containLabel: false },
+      tooltip: {
+        ...dica(p),
+        formatter: (a: unknown) => {
+          const d = (a as { dataIndex: number }).dataIndex;
+          const it = dados[d];
+          const extra = it.extra ? `<br><span style="opacity:.75">${it.extra}</span>` : "";
+          return `${it.k}<br><b style="font-size:15px">${formatar(it.v)}${unidade}</b>${extra}`;
+        },
+      },
+      xAxis: eixoValor(p, { max, axisLabel: { show: false }, splitLine: { show: false } }),
+      yAxis: eixoCategoria(p, {
+        inverse: true,
+        data: dados.map((d) => d.k),
+        axisLine: { show: false },
+        axisLabel: {
+          color: p.tinta2,
+          fontSize: TIPO.rotulo,
+          fontFamily: p.fonte,
+          width: wRot,
+          formatter: (v: string) => cortar(v, letras),
+        },
+      }),
+      /* Um zoom só por roda do mouse é invisível: o leitor vê catorze linhas e
+         conclui que são todas as que existem. A barra à direita é a única parte
+         do instrumento que precisa ser vista antes de ser usada. */
+      ...(comZoom
+        ? {
+            dataZoom: [
+              { type: "inside", yAxisIndex: 0, startValue: 0, endValue: LINHAS_SEM_ZOOM - 1, zoomOnMouseWheel: false, moveOnMouseWheel: true },
+              {
+                type: "slider",
+                yAxisIndex: 0,
+                startValue: 0,
+                endValue: LINHAS_SEM_ZOOM - 1,
+                width: 11,
+                right: 8,
+                showDetail: false,
+                brushSelect: false,
+                borderColor: "transparent",
+                backgroundColor: p.placaFunda,
+                fillerColor: p.escuro ? "#ffffff2e" : "#0f172a24",
+                handleStyle: { color: p.fioForte, borderWidth: 0 },
+                moveHandleStyle: { color: p.fioForte },
+              },
+            ],
+          }
+        : {}),
+      series: [
+        {
+          type: "bar",
+          barMaxWidth: 16,
+          itemStyle: {
+            borderRadius: [0, 4, 4, 0],
+            color: (a: ParamRotulo) => {
+              const it = dados[a.dataIndex];
+              // Destaque é estado anormal, e estado anormal tem cor própria.
+              if (destaque?.has(it.k)) return p.alarme;
+              return corDe(it.cor, p, p.rampa[1]);
+            },
+          },
+          emphasis: { itemStyle: { color: p.foco } },
+          /* O rótulo direto no fim da barra, sempre. Na mesa o leitor compara
+             valores exatos, não silhuetas, e mandá-lo ao sobrevoo item a item
+             para ler um número é cobrar um clique por dado. */
+          label: {
+            show: true,
+            position: "right",
+            distance: 7,
+            color: p.tinta,
+            fontSize: TIPO.valor,
+            fontFamily: p.fonte,
+            fontWeight: 600,
+            formatter: (a: ParamRotulo) => `${formatar(dados[a.dataIndex].v)}${unidade}`,
+          },
+          data: dados.map((d) => d.v),
+          ...(limiar
+            ? {
+                markLine: {
+                  silent: true,
+                  symbol: "none",
+                  lineStyle: { color: p.alarme, width: 1.4, type: [5, 4] },
+                  label: {
+                    formatter: limiar.rotulo,
+                    color: p.alarme,
+                    fontSize: TIPO.marca,
+                    fontFamily: p.fonte,
+                    // Acima do traço, não na ponta: na ponta o rótulo caía fora
+                    // da moldura e simplesmente não era desenhado.
+                    position: "start",
+                    distance: 6,
+                  },
+                  data: [{ xAxis: limiar.valor }],
+                },
+              }
+            : {}),
+        },
+      ],
+    };
+  }, [dados, p, unidade, formatar, destaque, limiar, max]);
 
-  return (
-    <div ref={ref} className="rs-grafico">
-      {corpo ?? <Vazio />}
-      <Dica dica={dica} />
-    </div>
-  );
+  if (vazio) return <Vazio />;
+  return <Grafico option={option} altura={altura} aria={`Barras: ${dados.map((d) => `${d.k} ${formatar(d.v)}${unidade}`).join(", ")}`} />;
 }
 
 export const tabelaBarras = (
@@ -372,118 +374,109 @@ export function Colunas({
   altura = 200,
   rotularTodas = false,
   agora,
+  serieExtra,
 }: {
   dados: ItemBarra[];
   altura?: number;
   rotularTodas?: boolean;
   /** Chave do período corrente: fica sempre marcada, sem o leitor procurar. */
   agora?: string;
+  /**
+   * A segunda medida da mesma categoria, lado a lado.
+   *
+   * Vagas e posições são grandezas diferentes da mesma requisição: uma vaga com
+   * doze posições conta como uma no eixo e como doze na necessidade real. Vistas
+   * separadas, em duas placas, ninguém cruza; vistas em par, a diferença entre
+   * as duas colunas *é* o dado.
+   */
+  serieExtra?: { nome: string; nomeBase: string; valores: number[] };
 }) {
-  const { ref, largura } = useLargura<HTMLDivElement>();
-  const { dica, mostrar, esconder } = useDica();
+  const p = usePaleta();
+  const vazio = !dados.length || dados.every((d) => !d.v);
 
-  const corpo = (() => {
-    if (!largura || !dados.length || dados.every((d) => !d.v)) return null;
-    const esq = 40;
-    const dir = 10;
-    const topo = 20;
-    const base = 30;
-    const wPlot = Math.max(40, largura - esq - dir);
-    const hPlot = altura - topo - base;
-    const { teto, marcas } = escala(Math.max(...dados.map((d) => d.v), 1));
-    const vaga = wPlot / dados.length;
-    const wCol = Math.min(26, Math.max(5, vaga - 9));
-    const maior = Math.max(...dados.map((d) => d.v));
-    /* O rótulo de categoria rareia quando não cabe no vão, não quando as
-       categorias passam de vinte: oito meses num telefone se encavalam tanto
-       quanto trinta num monitor. A paridade escolhida preserva o período
-       corrente, que é o único que nunca pode sumir. */
-    const iAgora = agora ? dados.findIndex((d) => d.k === agora) : -1;
-    const larguraRotulo = Math.max(...dados.map((d) => Math.min(d.k.length, 11))) * 6.2;
-    const rarear = larguraRotulo + 6 > vaga;
-    const paridade = rarear && iAgora >= 0 ? iAgora % 2 : 0;
+  const option = useMemo<EChartsOption>(() => {
+    const maior = Math.max(...dados.map((d) => d.v), 1);
+    const muitas = dados.length > 16;
 
-    return (
-      <svg viewBox={`0 0 ${largura} ${altura}`} width="100%" height={altura} role="img">
-        {marcas.map((t) => {
-          const y = topo + hPlot - (hPlot * t) / teto;
-          return (
-            <g key={t}>
-              <line className="rs-g-fio" x1={esq} y1={y} x2={largura - dir} y2={y} />
-              <text className="rs-t-marca" x={esq - 7} y={y + 3.5} textAnchor="end">
-                {fmtN(t)}
-              </text>
-            </g>
-          );
-        })}
+    const base = {
+      type: "bar" as const,
+      barMaxWidth: serieExtra ? 15 : 26,
+      itemStyle: {
+        borderRadius: [4, 4, 0, 0] as [number, number, number, number],
+        color: (a: ParamRotulo) =>
+          // O período corrente nunca se confunde com os fechados.
+          agora && dados[a.dataIndex].k === agora
+            ? p.rampa[3]
+            // Lado a lado, dois degraus vizinhos da rampa não se distinguem: o
+            // par abre a distância entre eles.
+            : corDe(dados[a.dataIndex].cor, p, serieExtra ? p.rampa[2] : p.rampa[1]),
+      },
+      emphasis: { itemStyle: { color: p.foco } },
+      label: {
+        /* Rotular tudo empasta um eixo de trinta meses. Sem pedido explícito,
+           fala só o que muda a leitura: o pico e o período corrente. */
+        show: true,
+        position: "top" as const,
+        color: p.tinta,
+        fontSize: TIPO.valor,
+        fontFamily: p.fonte,
+        fontWeight: 600,
+        formatter: (a: ParamRotulo) => {
+          const d = dados[a.dataIndex];
+          if (rotularTodas || !muitas || d.k === agora || d.v === maior) return fmtN(Number(a.value));
+          return "";
+        },
+      },
+      data: dados.map((d) => d.v),
+    };
 
-        {dados.map((d, i) => {
-          const x = esq + vaga * i + (vaga - wCol) / 2;
-          const h = (hPlot * d.v) / teto;
-          const y = topo + hPlot - h;
-          const eAgora = agora === d.k;
-          return (
-            <g key={d.k}>
-              {eAgora ? (
-                <rect
-                  x={esq + vaga * i}
-                  y={topo - 6}
-                  width={vaga}
-                  height={hPlot + 6}
-                  fill="var(--rs-placa-funda)"
-                />
-              ) : null}
-              <path
-                d={coluna(x, y, wCol, h)}
-                className="rs-mk"
-                style={d.cor ? { fill: d.cor } : undefined}
-                tabIndex={dados.length <= 16 ? 0 : -1}
-                role="img"
-                aria-label={`${d.k}: ${fmtN(d.v)}`}
-                onMouseEnter={mostrar(d.k, fmtN(d.v))}
-                onMouseLeave={esconder}
-                onFocus={mostrar(d.k, fmtN(d.v))}
-                onBlur={esconder}
-              />
-              {rotularTodas || eAgora || vaga > 26 || d.v === maior ? (
-                <text className="rs-t-valor" x={x + wCol / 2} y={y - 6} textAnchor="middle">
-                  {fmtN(d.v)}
-                </text>
-              ) : null}
-              {!rarear || i % 2 === paridade ? (
-                <text
-                  className="rs-t-rotulo"
-                  x={x + wCol / 2}
-                  y={altura - 12}
-                  textAnchor="middle"
-                  style={eAgora ? { fill: "var(--rs-tinta)", fontWeight: 600 } : undefined}
-                >
-                  {cortar(d.k, 11)}
-                </text>
-              ) : null}
-            </g>
-          );
-        })}
-        <line className="rs-g-eixo" x1={esq} y1={topo + hPlot} x2={largura - dir} y2={topo + hPlot} />
-        {agora ? (
-          <text className="rs-t-marca" x={largura - dir} y={altura - 1} textAnchor="end">
-            período corrente marcado
-          </text>
-        ) : null}
-      </svg>
-    );
-  })();
+    return {
+      animationDuration: 320,
+      grid: { left: 46, right: 12, top: 26, bottom: dados.length > 10 ? 46 : 26, containLabel: false },
+      tooltip: {
+        ...dica(p),
+        trigger: "axis",
+        axisPointer: { type: "shadow", shadowStyle: { color: p.escuro ? "#ffffff12" : "#0f172a0d" } },
+      },
+      ...(serieExtra ? { legend: { show: false } } : {}),
+      xAxis: eixoCategoria(p, {
+        data: dados.map((d) => d.k),
+        axisLabel: {
+          color: p.tinta2,
+          fontSize: TIPO.marca,
+          fontFamily: p.fonte,
+          hideOverlap: true,
+          rotate: dados.length > 10 ? 38 : 0,
+        },
+      }),
+      yAxis: eixoValor(p),
+      ...(dados.length > 18
+        ? { dataZoom: [{ type: "inside", xAxisIndex: 0, zoomOnMouseWheel: false, moveOnMouseWheel: true }] }
+        : {}),
+      series: serieExtra
+        ? [
+            { ...base, name: serieExtra.nomeBase },
+            {
+              ...base,
+              name: serieExtra.nome,
+              itemStyle: { borderRadius: [4, 4, 0, 0] as [number, number, number, number], color: p.rampa[0] },
+              label: {
+                ...base.label,
+                formatter: (a: ParamRotulo) => (rotularTodas || !muitas ? fmtN(Number(a.value)) : ""),
+              },
+              data: serieExtra.valores,
+            },
+          ]
+        : [base],
+    };
+  }, [dados, p, rotularTodas, agora, serieExtra]);
 
-  return (
-    <div ref={ref} className="rs-grafico">
-      {corpo ?? <Vazio />}
-      <Dica dica={dica} />
-    </div>
-  );
+  if (vazio) return <Vazio />;
+  return <Grafico option={option} altura={altura} aria={`Colunas: ${dados.map((d) => `${d.k} ${fmtN(d.v)}`).join(", ")}`} />;
 }
 
 /* ------------------------------------------------------------------ *
- * Barras empilhadas
+ * Empilhado
  * ------------------------------------------------------------------ */
 
 export interface Serie {
@@ -501,94 +494,103 @@ export function Empilhado({
   series: Serie[];
   proporcional?: boolean;
 }) {
-  const { ref, largura } = useLargura<HTMLDivElement>();
-  const { dica, mostrar, esconder } = useDica();
+  const p = usePaleta();
+  const vazio = !categorias.length || !series.length;
 
-  const corpo = (() => {
-    if (!largura || !categorias.length) return null;
-    const wRot = Math.min(260, Math.max(74, Math.round(largura * 0.30)));
-    const x0 = wRot + 12;
-    const wPlot = Math.max(40, largura - x0 - (proporcional ? 12 : 54));
-    const hBarra = 18;
-    const passo = hBarra + 12;
-    const altura = categorias.length * passo + 4;
+  const altura = Math.min(categorias.length, LINHAS_SEM_ZOOM) * 34 + 16;
+
+  const option = useMemo<EChartsOption>(() => {
+    const { largura: wRot, letras } = calha(categorias, 26);
     const totais = categorias.map((c) => series.reduce((t, s) => t + (s.valores[c] ?? 0), 0));
-    const teto = proporcional ? 1 : Math.max(...totais, 1);
 
-    return (
-      <svg viewBox={`0 0 ${largura} ${altura}`} width="100%" height={altura} role="img">
-        {categorias.map((c, i) => {
-          const y = i * passo;
+    return {
+      animationDuration: 320,
+      grid: { left: wRot + 10, right: proporcional ? 14 : 54, top: 6, bottom: 4, containLabel: false },
+      tooltip: {
+        ...dica(p),
+        trigger: "axis",
+        axisPointer: { type: "shadow", shadowStyle: { color: p.escuro ? "#ffffff12" : "#0f172a0d" } },
+        /* Empilhado com sobrevoo por eixo é o ganho real da troca de motor: o
+           leitor vê a composição inteira da categoria de uma vez, em vez de
+           caçar segmento por segmento. */
+        formatter: (a: unknown) => {
+          const linhas = a as Array<{ dataIndex: number; seriesName: string; value: number; color: string }>;
+          if (!linhas.length) return "";
+          const i = linhas[0].dataIndex;
           const total = totais[i] || 1;
-          let x = x0;
-          return (
-            <g key={c}>
-              {series.map((s) => {
-                const bruto = s.valores[c] ?? 0;
-                if (!bruto) return null;
-                const p = proporcional ? bruto / total : bruto;
-                const seg = (wPlot * p) / teto;
-                // Folga de 2px na cor da superfície: o branco separa, não o traço.
-                const w = Math.max(0, seg - 2);
-                const atual = x;
-                x += seg;
-                if (w <= 0.4) return null;
-                return (
-                  <g key={s.nome}>
-                    <rect
-                      x={atual}
-                      y={y}
-                      width={w}
-                      height={hBarra}
-                      fill={s.cor}
-                      onMouseEnter={mostrar(
-                        `${c} · ${s.nome}`,
-                        `${fmtN(bruto)} (${fmtPct(bruto / total)})`,
-                      )}
-                      onMouseLeave={esconder}
-                    />
-                    {(() => {
-                      const marca = proporcional ? fmtPct(bruto / total) : fmtN(bruto);
-                      return w > marca.length * 7.4 + 10;
-                    })() ? (
-                      <text
-                        className="rs-t-valor"
-                        style={{ fill: tintaSobre(s.cor) }}
-                        x={atual + w / 2}
-                        y={y + hBarra - 5}
-                        textAnchor="middle"
-                      >
-                        {proporcional ? fmtPct(bruto / total) : fmtN(bruto)}
-                      </text>
-                    ) : null}
-                  </g>
-                );
-              })}
-              <text className="rs-t-rotulo" x={wRot} y={y + hBarra - 4} textAnchor="end">
-                {cortar(c, Math.floor(wRot / 6.3))}
-              </text>
-              {!proporcional ? (
-                <text
-                  className="rs-t-valor"
-                  x={x0 + (wPlot * totais[i]) / teto + 7}
-                  y={y + hBarra - 4}
-                >
-                  {fmtN(totais[i])}
-                </text>
-              ) : null}
-            </g>
-          );
-        })}
-      </svg>
-    );
-  })();
+          const corpo = linhas
+            .filter((l) => l.value)
+            .map(
+              (l) =>
+                `<div style="display:flex;gap:8px;align-items:center;margin-top:3px">` +
+                `<i style="width:9px;height:9px;border-radius:2px;background:${l.color}"></i>` +
+                `<span style="flex:1">${l.seriesName}</span>` +
+                `<b>${fmtN(l.value)}${proporcional ? ` · ${fmtPct(l.value / total)}` : ""}</b></div>`,
+            )
+            .join("");
+          return `${categorias[i]} <span style="opacity:.7">(n=${fmtN(totais[i])})</span>${corpo}`;
+        },
+      },
+      xAxis: eixoValor(p, {
+        max: proporcional ? 100 : undefined,
+        axisLabel: { show: false },
+        splitLine: { show: false },
+      }),
+      yAxis: eixoCategoria(p, {
+        inverse: true,
+        data: categorias,
+        axisLine: { show: false },
+        axisLabel: {
+          color: p.tinta2,
+          fontSize: TIPO.rotulo,
+          fontFamily: p.fonte,
+          width: wRot,
+          formatter: (v: string) => cortar(v, letras),
+        },
+      }),
+      ...(categorias.length > LINHAS_SEM_ZOOM
+        ? {
+            dataZoom: [
+              { type: "inside", yAxisIndex: 0, startValue: 0, endValue: LINHAS_SEM_ZOOM - 1, zoomOnMouseWheel: false, moveOnMouseWheel: true },
+            ],
+          }
+        : {}),
+      series: series.map((s) => {
+        const cor = corDe(s.cor, p, p.rampa[1]);
+        return {
+          name: s.nome,
+          type: "bar" as const,
+          stack: "t",
+          barMaxWidth: 20,
+          /* A folga de 2px na cor da placa entre segmentos: é ela que faz a
+             pilha ler como partes, e não como um borrão degradê. */
+          itemStyle: { color: cor, borderColor: p.placa, borderWidth: 1.5 },
+          emphasis: { focus: "series" as const },
+          label: {
+            show: true,
+            color: tintaSobre(cor, p),
+            fontSize: TIPO.marca,
+            fontFamily: p.fonte,
+            fontWeight: 600,
+            // Segmento estreito não comporta número; o sobrevoo cobre esses.
+            formatter: (a: ParamRotulo) => {
+              const v = Number(a.value);
+              const largo = proporcional ? v >= 14 : v / (Math.max(...totais) || 1) >= 0.1;
+              if (!v || !largo) return "";
+              return proporcional ? `${Math.round(v)}%` : fmtN(v);
+            },
+          },
+          data: categorias.map((c, i) => {
+            const bruto = s.valores[c] ?? 0;
+            return proporcional ? ((bruto / (totais[i] || 1)) * 100) : bruto;
+          }),
+        };
+      }),
+    };
+  }, [categorias, series, proporcional, p]);
 
-  return (
-    <div ref={ref} className="rs-grafico">
-      {corpo ?? <Vazio />}
-      <Dica dica={dica} />
-    </div>
-  );
+  if (vazio) return <Vazio />;
+  return <Grafico option={option} altura={altura} aria={`Empilhado por ${categorias.length} categorias`} />;
 }
 
 export const tabelaEmpilhada = (
@@ -621,78 +623,116 @@ export interface ItemFaixa {
   n: number;
 }
 
+/**
+ * A faixa interquartil desenhada como haltere.
+ *
+ * Uma barra até a mediana mente: sugere que o tempo cresce de zero até ali,
+ * quando o que existe é uma nuvem de casos entre p25 e p75. O traço mostra a
+ * dispersão e a marca mostra o centro — quem tem faixa larga é imprevisível,
+ * não necessariamente lento, e essa distinção é a razão da placa existir.
+ *
+ * É série `custom` porque nenhum tipo pronto do ECharts desenha isto: `boxplot`
+ * exigiria os cinco números e desenharia bigodes que não temos.
+ */
 export function Faixa({ dados }: { dados: ItemFaixa[] }) {
-  const { ref, largura } = useLargura<HTMLDivElement>();
-  const { dica, mostrar, esconder } = useDica();
+  const p = usePaleta();
+  const vazio = !dados.length;
 
-  const corpo = (() => {
-    if (!largura || !dados.length) return null;
-    const wRot = Math.min(160, Math.max(80, Math.round(largura * 0.3)));
-    const x0 = wRot + 12;
-    const wPlot = Math.max(40, largura - x0 - 58);
-    const passo = 27;
-    const altura = dados.length * passo + 24;
-    const { teto, marcas } = escala(Math.max(...dados.map((d) => d.p75 || d.v), 1));
-    const px = (v: number) => x0 + (wPlot * Math.min(v, teto)) / teto;
+  const altura = Math.min(dados.length, LINHAS_SEM_ZOOM) * 32 + 26;
 
-    return (
-      <svg viewBox={`0 0 ${largura} ${altura}`} width="100%" height={altura} role="img">
-        {marcas.map((t) => (
-          <g key={t}>
-            <line className="rs-g-fio" x1={px(t)} y1={0} x2={px(t)} y2={dados.length * passo - 7} />
-            <text className="rs-t-marca" x={px(t)} y={altura - 7} textAnchor="middle">
-              {fmtN(t)}
-            </text>
-          </g>
-        ))}
-        {dados.map((d, i) => {
-          const y = i * passo + 10;
-          const texto = `mediana ${fmtN(d.v)} d · p25 ${fmtN(d.p25)} · p75 ${fmtN(d.p75)} · n=${fmtN(d.n)}`;
+  const option = useMemo<EChartsOption>(() => {
+    const { largura: wRot, letras } = calha(dados.map((d) => d.k), 26);
+
+    return {
+      animationDuration: 320,
+      grid: { left: wRot + 10, right: 60, top: 6, bottom: 26, containLabel: false },
+      tooltip: {
+        ...dica(p),
+        formatter: (a: unknown) => {
+          const d = dados[(a as { dataIndex: number }).dataIndex];
           return (
-            <g key={d.k}>
-              <text className="rs-t-rotulo" x={wRot} y={y + 4} textAnchor="end">
-                {cortar(d.k, Math.floor(wRot / 6.3))}
-              </text>
-              <rect
-                x={px(d.p25)}
-                y={y - 3.5}
-                width={Math.max(2, px(d.p75) - px(d.p25))}
-                height={7}
-                fill="var(--rs-rampa-1)"
-                onMouseEnter={mostrar(d.k, texto)}
-                onMouseLeave={esconder}
-              />
-              <circle
-                cx={px(d.v)}
-                cy={y}
-                r={5}
-                fill="var(--rs-rampa-4)"
-                stroke="var(--rs-placa)"
-                strokeWidth={2}
-                tabIndex={0}
-                role="img"
-                aria-label={`${d.k}: ${texto}`}
-                onMouseEnter={mostrar(d.k, texto)}
-                onMouseLeave={esconder}
-                onFocus={mostrar(d.k, texto)}
-                onBlur={esconder}
-              />
-              <text className="rs-t-valor" x={largura - 4} y={y + 4} textAnchor="end">
-                {fmtN(d.v)} d
-              </text>
-            </g>
+            `${d.k}<br><b style="font-size:15px">${fmtN(d.v)} dias</b> <span style="opacity:.75">mediana</span>` +
+            `<br><span style="opacity:.75">metade dos casos entre ${fmtN(d.p25)} e ${fmtN(d.p75)} · n=${fmtN(d.n)}</span>`
           );
-        })}
-      </svg>
-    );
-  })();
+        },
+      },
+      xAxis: eixoValor(p, { name: "dias", nameLocation: "end", nameTextStyle: { color: p.tinta3, fontSize: TIPO.marca } }),
+      yAxis: eixoCategoria(p, {
+        inverse: true,
+        data: dados.map((d) => d.k),
+        axisLine: { show: false },
+        axisLabel: {
+          color: p.tinta2,
+          fontSize: TIPO.rotulo,
+          fontFamily: p.fonte,
+          width: wRot,
+          formatter: (v: string) => cortar(v, letras),
+        },
+      }),
+      ...(dados.length > LINHAS_SEM_ZOOM
+        ? {
+            dataZoom: [
+              { type: "inside", yAxisIndex: 0, startValue: 0, endValue: LINHAS_SEM_ZOOM - 1, zoomOnMouseWheel: false, moveOnMouseWheel: true },
+            ],
+          }
+        : {}),
+      series: [
+        {
+          type: "custom",
+          renderItem: (params: RenderParams, api: RenderAPI) => {
+            const i = params.dataIndex;
+            const d = dados[i];
+            const y = api.coord([0, i])[1];
+            const x25 = api.coord([d.p25, i])[0];
+            const x75 = api.coord([d.p75, i])[0];
+            const xMed = api.coord([d.v, i])[0];
+            const hFaixa = 9;
 
-  return (
-    <div ref={ref} className="rs-grafico">
-      {corpo ?? <Vazio />}
-      <Dica dica={dica} />
-    </div>
-  );
+            return {
+              type: "group",
+              children: [
+                {
+                  // A faixa: onde metade dos casos cai.
+                  type: "rect",
+                  shape: { x: x25, y: y - hFaixa / 2, width: Math.max(x75 - x25, 1.5), height: hFaixa, r: 2 },
+                  style: { fill: p.rampa[1], opacity: p.escuro ? 0.55 : 0.42 },
+                },
+                {
+                  // A mediana: traço cheio, atravessando a faixa.
+                  type: "rect",
+                  shape: { x: xMed - 1.4, y: y - 11, width: 2.8, height: 22, r: 1.4 },
+                  style: { fill: p.rampa[2] },
+                },
+              ],
+            };
+          },
+          label: { show: false },
+          data: dados.map((d) => [d.v, d.p25, d.p75]),
+        },
+        {
+          // Série invisível só para pendurar o rótulo do valor na ponta direita.
+          type: "bar",
+          barWidth: 0,
+          itemStyle: { color: "transparent" },
+          silent: true,
+          label: {
+            show: true,
+            position: "right",
+            distance: 8,
+            color: p.tinta,
+            fontSize: TIPO.valor,
+            fontFamily: p.fonte,
+            fontWeight: 600,
+            formatter: (a: ParamRotulo) => `${fmtN(dados[a.dataIndex].v)} d`,
+          },
+          data: dados.map((d) => d.p75),
+        },
+      ],
+    };
+  }, [dados, p]);
+
+  if (vazio) return <Vazio />;
+  return <Grafico option={option} altura={altura} aria={`Mediana e faixa p25–p75 por ${dados.length} categorias`} />;
 }
 
 export const tabelaFaixa = (dados: ItemFaixa[], colK: string): TabelaGemea => ({
@@ -701,159 +741,119 @@ export const tabelaFaixa = (dados: ItemFaixa[], colK: string): TabelaGemea => ({
 });
 
 /* ------------------------------------------------------------------ *
- * Unifilar: o funil como uma linha de fluxo
+ * Funil
  * ------------------------------------------------------------------ */
 
-export interface NoUnifilar {
+export interface NoFunil {
   k: string;
   v: number;
-  /** Quantos saem aqui. Acende o nó quando a perda é a maior da linha. */
+  /** Quantos saem aqui. Acende a etapa quando a perda é a maior da linha. */
   perda: number;
 }
 
 /**
- * O momento do painel. Uma linha só, da esquerda para a direita, com a
- * espessura carregando o volume e o nó aceso exatamente onde mais se perde.
- * É o único lugar onde o diagrama literal aparece, porque é o único lugar do
- * produto onde existe fluxo de verdade.
+ * O funil, desenhado como funil.
+ *
+ * Antes era uma linha de espessura variável — correto na proporção e mudo na
+ * metáfora: quem lê "funil" procura um funil. O trapézio devolve a forma que o
+ * nome promete, e a largura continua sendo o volume, então nada se perdeu de
+ * rigor. A etapa onde mais gente sai vem acesa em alarme, porque é a única
+ * pergunta que esta placa existe para responder.
  */
-export function Unifilar({ nos }: { nos: NoUnifilar[] }) {
-  const { ref, largura } = useLargura<HTMLDivElement>();
-  const { dica, mostrar, esconder } = useDica();
+export function Funil({ nos }: { nos: NoFunil[] }) {
+  const p = usePaleta();
+  const vazio = nos.length < 2;
 
-  const corpo = (() => {
-    if (!largura || nos.length < 2) return null;
-    /* A altura acompanha a largura: no projetor a placa fica ao lado de uma
-       lista de alarmes bem mais alta, e um instrumento de altura fixa deixa
-       um vão de painel vazio justamente na leitura de abertura. */
-    const altura = Math.round(Math.min(220, Math.max(150, 150 + (largura - 620) * 0.13)));
-    const esq = 8;
-    const dir = 8;
-    const wPlot = Math.max(120, largura - esq - dir);
-    const vao = wPlot / (nos.length - 1);
-    const eixoY = Math.round(altura * 0.44);
-    const maior = nos[0].v || 1;
-    /* A espessura acompanha a altura da placa: é o traço que cresce, não o ar
-       em volta dele. */
-    const espMax = Math.round(altura * 0.22);
-    const espessura = (v: number) => Math.max(2, Math.round((v / maior) * espMax));
-    // Sem perda nenhuma não há trecho crítico. Sem esta guarda, um funil vazio
-    // desenhava a linha inteira em vermelho de alarme, porque zero empata com
-    // zero e todo trecho virava "o pior".
-    const piorPerda = Math.max(...nos.slice(0, -1).map((n) => n.perda), 0);
-    const temPerda = piorPerda > 0;
+  const option = useMemo<EChartsOption>(() => {
+    const topo = nos[0]?.v || 1;
+    // Sem perda nenhuma não há trecho crítico: um funil vazio não deve acender.
+    const maiorPerda = Math.max(...nos.slice(0, -1).map((n) => n.perda), 0);
+    const uniforme = nos.every((n) => n.v === nos[0].v);
+    const iCritico = maiorPerda > 0 ? nos.findIndex((n, i) => i < nos.length - 1 && n.perda === maiorPerda) : -1;
 
-    return (
-      <svg viewBox={`0 0 ${largura} ${altura}`} width="100%" height={altura} role="img">
-        {nos.slice(0, -1).map((n, i) => {
-          const x1 = esq + vao * i;
-          const x2 = esq + vao * (i + 1);
-          const e = espessura(nos[i + 1].v);
-          const critico = temPerda && n.perda === piorPerda;
-          const conversao = n.v ? nos[i + 1].v / n.v : 0;
-          return (
-            <g key={`t${i}`}>
-              <rect
-                x={x1}
-                y={eixoY - e / 2}
-                width={x2 - x1}
-                height={e}
-                fill={critico ? "var(--rs-alarme)" : "var(--rs-rampa-2)"}
-                opacity={critico ? 1 : 0.9}
-                onMouseEnter={mostrar(
-                  `${n.k} até ${nos[i + 1].k}`,
-                  `${fmtPct(conversao)} avançam · ${fmtN(n.perda)} saem`,
-                )}
-                onMouseLeave={esconder}
-              />
-              <text
-                className="rs-t-nota"
-                x={(x1 + x2) / 2}
-                y={eixoY + e / 2 + 20}
-                textAnchor="middle"
-                style={critico ? { fill: "var(--rs-alarme)", fontWeight: 600 } : undefined}
-              >
-                {fmtPct(conversao)}
-              </text>
-              <text
-                className="rs-t-nota"
-                x={(x1 + x2) / 2}
-                y={eixoY + e / 2 + 36}
-                textAnchor="middle"
-              >
-                −{fmtN(n.perda)}
-              </text>
-            </g>
-          );
-        })}
+    return {
+      animationDuration: 380,
+      tooltip: {
+        ...dica(p),
+        formatter: (a: unknown) => {
+          const i = (a as { dataIndex: number }).dataIndex;
+          const n = nos[i];
+          const prox = nos[i + 1];
+          const passa = prox ? `<br><span style="opacity:.75">avançam ${fmtPct(prox.v / (n.v || 1))} · saem aqui ${fmtN(n.perda)}</span>` : "";
+          return `${n.k}<br><b style="font-size:15px">${fmtN(n.v)}</b> <span style="opacity:.75">· ${fmtPct(n.v / topo)} do topo</span>${passa}`;
+        },
+      },
+      series: [
+        {
+          type: "funnel",
+          top: 8,
+          bottom: 8,
+          left: "8%",
+          right: "8%",
+          /* A largura sai de uma régua declarada, não do intervalo dos próprios
+             dados: assim a etapa lê como fração do topo, e não como posição
+             relativa entre a maior e a menor do recorte. */
+          min: 0,
+          max: nos[0]?.v || 1,
+          /* O último segmento afunila por construção no ECharts — é o bico do
+             funil. Num recorte onde ninguém saiu ainda, esse bico desenha uma
+             perda que não existe. Quando todas as etapas têm o mesmo número não
+             há funil: há um tubo, e o piso de largura passa a ser o teto. */
+          minSize: uniforme ? "100%" : "22%",
+          // `none` respeita a ordem das etapas: o funil é cronológico, não um
+          // ranking. Ordenar por valor inventaria um processo que não existe.
+          sort: "none",
+          gap: 3,
+          data: nos.map((n, i) => {
+            const degrau = Math.min(3, Math.floor((i / Math.max(nos.length - 1, 1)) * 3));
+            return {
+              name: n.k,
+              value: n.v,
+              itemStyle: {
+                /* A rampa ordinal carrega a posição na esteira, não o juízo.
+                   Preencher de vermelho a etapa de maior perda pinta sempre a
+                   maior do funil, e diz "abordar é o problema" — quando o que
+                   sangra é a passagem dela para a seguinte, não ela. O alarme
+                   fica no contorno e no texto: aponta a transição sem
+                   reivindicar o volume inteiro. */
+                color: p.rampa[degrau],
+                borderColor: i === iCritico ? p.alarme : "transparent",
+                borderWidth: i === iCritico ? 2.5 : 0,
+              },
+              label: { color: p.sobreRampa[degrau] },
+            };
+          }),
+          label: {
+            show: true,
+            position: "inside",
+            fontSize: TIPO.rotulo,
+            fontFamily: p.fonte,
+            fontWeight: 600,
+            // Na etapa crítica o rótulo diz quanto se perde na passagem. É a
+            // única pergunta que esta placa existe para responder, e ela não
+            // pode depender de sobrevoo.
+            formatter: (a: ParamRotulo) =>
+              a.dataIndex === iCritico
+                ? `${a.name}  ${fmtN(Number(a.value))}   −${fmtN(nos[a.dataIndex].perda)} na passagem`
+                : `${a.name}  ${fmtN(Number(a.value))}`,
+          },
+          emphasis: { label: { fontSize: TIPO.destaque } },
+        },
+      ],
+    };
+  }, [nos, p]);
 
-        {nos.map((n, i) => {
-          const x = esq + vao * i;
-          return (
-            <g key={n.k}>
-              <circle
-                cx={x}
-                cy={eixoY}
-                r={9}
-                fill="var(--rs-placa)"
-                stroke="var(--rs-tinta)"
-                strokeWidth={2}
-                tabIndex={0}
-                role="img"
-                aria-label={`${n.k}: ${fmtN(n.v)} candidatos, ${fmtPct(n.v / maior)} do topo`}
-                onMouseEnter={mostrar(n.k, `${fmtN(n.v)} candidatos · ${fmtPct(n.v / maior)} do topo`)}
-                onMouseLeave={esconder}
-                onFocus={mostrar(n.k, `${fmtN(n.v)} candidatos · ${fmtPct(n.v / maior)} do topo`)}
-                onBlur={esconder}
-              />
-              <text
-                className="rs-t-valor"
-                x={x}
-                y={eixoY - espMax / 2 - 13}
-                textAnchor="middle"
-                style={{ fontSize: 18 }}
-              >
-                {fmtN(n.v)}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    );
-  })();
-
+  if (vazio) return <Vazio />;
   return (
-    <div ref={ref} className="rs-grafico">
-      {/* Os rótulos de etapa vivem em HTML, não no viewBox: são cinco nomes
-          longos em versalete com entreletra, e só o navegador sabe quebrá-los
-          na largura de cada vão sem que um invada o outro. */}
-      {corpo ? (
-        <div className="rs-unifilar__rotulos" style={{ ["--rs-vaos" as string]: nos.length - 1 }}>
-          {nos.map((n, i) => {
-            const ultimo = i === nos.length - 1;
-            return (
-              <span
-                key={n.k}
-                className="rs-unifilar__rotulo"
-                style={{
-                  left: `${(i / (nos.length - 1)) * 100}%`,
-                  transform: i === 0 ? "none" : ultimo ? "translateX(-100%)" : "translateX(-50%)",
-                  textAlign: i === 0 ? "left" : ultimo ? "right" : "center",
-                }}
-              >
-                {n.k}
-              </span>
-            );
-          })}
-        </div>
-      ) : null}
-      {corpo ?? <Vazio />}
-      <Dica dica={dica} />
-    </div>
+    <Grafico
+      option={option}
+      altura={Math.max(210, nos.length * 46)}
+      aria={`Funil: ${nos.map((n) => `${n.k} ${fmtN(n.v)}`).join(", ")}`}
+    />
   );
 }
 
-export const tabelaUnifilar = (nos: NoUnifilar[]): TabelaGemea => {
+export const tabelaFunil = (nos: NoFunil[]): TabelaGemea => {
   const topo = nos[0]?.v || 1;
   return {
     cabecalhos: ["Etapa", "Candidatos", "% do topo", "Avançam", "Saem aqui"],

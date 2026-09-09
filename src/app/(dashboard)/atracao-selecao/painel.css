@@ -402,24 +402,15 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
 
 /* ------------------------------------------------------------------ *
  * Gráficos: a cor do dado fica presa dentro desta moldura
+ *
+ * O desenho é do ECharts, que resolve fonte, folga e posição de rótulo em
+ * JavaScript e não lê CSS. O que sobra aqui é a caixa: o motor precisa de um
+ * contêiner com altura resolvida para medir, e as cores da identidade chegam
+ * até ele por motor.tsx, não por cascata.
  * ------------------------------------------------------------------ */
 
 .rs-grafico { position: relative; min-height: 40px; }
-.rs-grafico svg { display: block; width: 100%; height: auto; overflow: visible; }
-.rs-g-fio { stroke: var(--rs-fio); stroke-width: 1; shape-rendering: crispEdges; }
-.rs-g-eixo { stroke: var(--rs-fio-forte); stroke-width: 1; shape-rendering: crispEdges; }
-.rs-g-limiar { stroke: var(--rs-alarme); stroke-width: 1.5; stroke-linecap: round; }
-.rs-t-rotulo { font-family: var(--rs-texto); font-size: 14px; fill: var(--rs-tinta-2); }
-.rs-t-valor {
-  font-family: var(--rs-quadro-fonte);
-  font-weight: 600;
-  font-size: 14px;
-  fill: var(--rs-tinta);
-  font-variant-numeric: tabular-nums;
-}
-.rs-t-marca { font-family: var(--rs-texto); font-size: 13px; fill: var(--rs-tinta-2); font-variant-numeric: tabular-nums; }
-.rs-t-nota { font-family: var(--rs-texto); font-size: 14px; fill: var(--rs-tinta-2); font-variant-numeric: tabular-nums; }
-.rs-t-limiar { font-family: var(--rs-texto); font-size: 13px; fill: var(--rs-alarme); }
+.rs-grafico svg { display: block; }
 
 /* Série única fala no segundo degrau da rampa. Azul, e não o teal da marca,
    porque uma barra de volume não pode afirmar que o número é bom. */
@@ -461,30 +452,6 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   text-align: center;
   font-size: 14px;
   color: var(--rs-tinta-3);
-}
-
-/* ------------------------------------------------------------------ *
- * Dica sobre a marca
- * ------------------------------------------------------------------ */
-
-.rs-dica {
-  position: fixed;
-  z-index: 60;
-  pointer-events: none;
-  background: var(--rs-tinta);
-  color: var(--rs-placa);
-  padding: 6px 9px;
-  font-size: 13px;
-  line-height: 1.35;
-  max-width: 280px;
-  box-shadow: var(--rs-sombra);
-}
-.rs-dica b {
-  display: block;
-  font-family: var(--rs-quadro-fonte);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  font-size: 15px;
 }
 
 /* ------------------------------------------------------------------ *
@@ -559,64 +526,6 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   .rs-estado { flex: 1 1 100%; }
 }
 
-/* ------------------------------------------------------------------ *
- * Unifilar: a régua de etapas
- *
- * Cada rótulo ocupa a largura do próprio vão e quebra em duas linhas dentro
- * dela. Antes eram textos de SVG centrados no nó, e como o viewBox não mede
- * versalete com entreletra, dois nomes vizinhos escreviam um por cima do
- * outro justamente na leitura mais importante do quadro.
- * ------------------------------------------------------------------ */
-
-.rs-unifilar__rotulos {
-  position: relative;
-  height: 2.9em;
-  margin-bottom: calc(var(--rs-u) * 2);
-}
-.rs-unifilar__rotulo {
-  position: absolute;
-  top: 0;
-  width: calc(100% / var(--rs-vaos) - 12px);
-  font-family: var(--rs-quadro-fonte);
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  color: var(--rs-tinta-3);
-  overflow-wrap: break-word;
-}
-
-/* Cinco etapas num vão de 70px não cabem, e encolher a fonte só troca um
-   defeito por outro: abaixo do piso de legibilidade o rótulo deixa de ser
-   rótulo. No telefone a régua abandona a posição e vira lista numerada acima
-   do traço — a ordem da lista é a ordem dos nós, da esquerda para a direita,
-   e a tabela gêmea continua carregando cada valor por extenso. */
-@media (max-width: 720px) {
-  .rs-unifilar__rotulos {
-    position: static;
-    height: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3px 12px;
-    counter-reset: etapa;
-    margin-bottom: calc(var(--rs-u) * 3);
-  }
-  .rs-unifilar__rotulo {
-    position: static;
-    width: auto;
-    transform: none !important;
-    text-align: left !important;
-    font-size: 12px;
-    letter-spacing: 0.01em;
-    line-height: 1.3;
-  }
-  .rs-unifilar__rotulo::before {
-    counter-increment: etapa;
-    content: counter(etapa) " ";
-    color: var(--rs-tinta);
-    font-weight: 700;
-  }
-}
 
 /* ------------------------------------------------------------------ *
  * Leituras: cartão de painel
@@ -690,3 +599,22 @@ main > div:has(> .rs-painel) { max-width: none; margin: 0; }
   color: var(--rs-tinta-2);
 }
 .rs-total b { color: var(--rs-tinta); font-weight: 600; }
+
+/* O vão que o instrumento vai ocupar, enquanto o motor de desenho chega.
+   Sem altura reservada a placa encolhe e a grade inteira salta quando cada
+   gráfico monta — o pior tipo de instabilidade, porque acontece depois de o
+   leitor já ter começado a ler. */
+.rs-grafico--carregando {
+  background: linear-gradient(90deg, transparent, var(--rs-placa-funda), transparent);
+  background-size: 220% 100%;
+  animation: rs-esperando 1.4s ease-in-out infinite;
+  border-radius: 6px;
+  opacity: 0.55;
+}
+@keyframes rs-esperando {
+  0% { background-position: 120% 0; }
+  100% { background-position: -20% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rs-grafico--carregando { animation: none; }
+}

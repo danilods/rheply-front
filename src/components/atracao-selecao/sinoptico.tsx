@@ -12,7 +12,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 
-import { Barras, Colunas, Placa, Unifilar, tabelaBarras, tabelaUnifilar } from "@/components/atracao-selecao/graficos";
+import { Barras, Colunas, Placa, Funil, tabelaBarras, tabelaFunil } from "@/components/atracao-selecao/graficos";
 import { BarraEstado, Etiqueta, FaixaLeituras, type Classe } from "@/components/atracao-selecao/ui";
 import {
   cascataFunil,
@@ -306,9 +306,9 @@ export function CorpoSinoptico({
         titulo="Funil do processo seletivo"
         nota="De quantos foram abordados até quantos foram aprovados. O trecho aceso é onde mais se perde."
         span="rs-c7"
-        tabela={tabelaUnifilar(c.nos)}
+        tabela={tabelaFunil(c.nos)}
       >
-        <Unifilar nos={c.nos} />
+        <Funil nos={c.nos} />
       </Placa>
 
       <section className="rs-placa rs-c5">

@@ -4,7 +4,7 @@
 
 import { useMemo } from "react";
 
-import { Barras, Colunas, Empilhado, Placa, Unifilar, tabelaBarras, tabelaEmpilhada, tabelaUnifilar } from "@/components/atracao-selecao/graficos";
+import { Barras, Colunas, Empilhado, Placa, Funil, tabelaBarras, tabelaEmpilhada, tabelaFunil } from "@/components/atracao-selecao/graficos";
 import { Achados, BarraEstado, Etiqueta, FaixaLeituras, Forte, Regua, Tabela, type Classe, type Coluna, type Severidade } from "@/components/atracao-selecao/ui";
 import { cascataFunil, COR_DESFECHO, fmtData, fmtMes, fmtN, fmtPct, LIMIARES, NOME_DESFECHO, ORDEM_DESFECHO } from "@/lib/rs/metricas";
 import { contarPor, maiores, porMes, proporcao } from "@/lib/rs/stats";
@@ -181,8 +181,8 @@ export default function PaginaFunil() {
         <div className="rs-c12"><BarraEstado classes={classes} /></div>
         <div className="rs-c12"><FaixaLeituras itens={leituras} /></div>
 
-        <Placa titulo="Funil, da abordagem à carta oferta" nota="A espessura carrega o volume e o trecho aceso é onde mais se perde. Etapa derivada do status e do motivo, porque as datas de etapa da planilha estão vazias." span="rs-c7" tabela={tabelaUnifilar(nos)}>
-          <Unifilar nos={nos} />
+        <Placa titulo="Funil, da abordagem à carta oferta" nota="A espessura carrega o volume e o trecho aceso é onde mais se perde. Etapa derivada do status e do motivo, porque as datas de etapa da planilha estão vazias." span="rs-c7" tabela={tabelaFunil(nos)}>
+          <Funil nos={nos} />
         </Placa>
 
         <Placa titulo="Não comparecimento por localidade" nota="Faltas e sumiços sobre os abordados na localidade." span="rs-c5" tabela={tabelaBarras(noShowPorPraca, "Localidade", "Não comparecimento", fmtN, "%")}>
