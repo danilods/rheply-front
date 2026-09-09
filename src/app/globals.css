@@ -51,18 +51,36 @@
      volume não pode ter valência: o estoque parado e o não comparecimento
      apareceriam sussurrando que está tudo certo. O teal recua para onde a
      valência positiva cabe — o anel de foco e o estado "em processo". */
+  /*
+   * A rampa ordinal: azul → índigo → violeta → marinho.
+   *
+   * Era uma matiz só, variando apenas em luminância, e isso a fazia render
+   * menos degraus do que declarava: entre #3b82f6 e #2563eb a diferença
+   * perceptual era de ΔE 8,6 sob deuteranopia — dois degraus que ninguém
+   * separava. Girando 43° de matiz ao longo da descida, o pior par passa a
+   * 11,4, um terço melhor, sem perder a luminância monotônica que é o que faz
+   * a rampa continuar legível em cinza e no projetor.
+   *
+   * A ordem continua sendo dada pela luminância, não pela matiz. A matiz só
+   * acrescenta um segundo canal de distinção — que é exatamente o que a
+   * literatura de mapas de cor aponta como a vantagem do multi-matiz sobre o
+   * mono-matiz em faixas estreitas de valor.
+   */
   --rh-rampa-1: #3b82f6;
-  --rh-rampa-2: #2563eb;
-  --rh-rampa-3: #1e40af;
+  --rh-rampa-2: #4f46e5;
+  --rh-rampa-3: #4c1d95;
   --rh-rampa-4: #172554;
   --rh-nulo: #94a3b8;       /* dado ausente, que não é uma categoria */
 
   /* A tinta que vai POR CIMA de cada preenchimento vem junto com ele,
      em vez de ser adivinhada por luminância em tempo de execução. */
-  --rh-sobre-rampa-1: #ffffff;
-  --rh-sobre-rampa-2: #ffffff;
-  --rh-sobre-rampa-3: #ffffff;
-  --rh-sobre-rampa-4: #ffffff;
+  /* Tinta declarada por degrau, nunca adivinhada por luminância em tempo de
+     execução. O degrau 1 pede tinta escura: branco sobre ele dava 3,68:1, e
+     era o único lugar do sistema abaixo de AA. */
+  --rh-sobre-rampa-1: #0f172a;   /*  4,9:1 */
+  --rh-sobre-rampa-2: #ffffff;   /*  6,3:1 */
+  --rh-sobre-rampa-3: #ffffff;   /* 11,0:1 */
+  --rh-sobre-rampa-4: #ffffff;   /* 14,7:1 */
   --rh-sobre-nulo: #0f172a;
   --rh-sobre-alarme: #ffffff;
   --rh-sobre-atencao: #0f172a;
@@ -91,16 +109,29 @@
   --rh-atencao-texto: #fbbf24;
   --rh-processo: #2dd4bf;   /*  9,6:1 */
 
+  /*
+   * No escuro a rampa sobe em luminância, e não desce: mais magnitude é mais
+   * claro, porque é o claro que avança contra o fundo.
+   *
+   * A família continua sendo a azul, ao contrário do claro, que gira até o
+   * violeta — e isso é escolha, não descuido. Sobre fundo escuro quem separa os
+   * degraus é a luminância, e girar matiz sai caro: a versão roxa, bem mais
+   * colorida, mede ΔE 9,7 entre degraus vizinhos, enquanto esta mede 12,7.
+   * Distinguir os quatro degraus vale mais do que espelhar a matiz do outro
+   * tema. A versão espelhada literal — violeta, índigo, azul, azul-pálido — é
+   * pior ainda: ΔE 3 entre o índigo e o azul sob deuteranopia, que para a
+   * deficiência de cor mais comum é a mesma cor duas vezes.
+   */
   --rh-rampa-1: #2563eb;
-  --rh-rampa-2: #3b82f6;
-  --rh-rampa-3: #60a5fa;
-  --rh-rampa-4: #bfdbfe;
+  --rh-rampa-2: #818cf8;
+  --rh-rampa-3: #93c5fd;
+  --rh-rampa-4: #dbeafe;
   --rh-nulo: #64748b;
 
-  --rh-sobre-rampa-1: #ffffff;
-  --rh-sobre-rampa-2: #ffffff;
-  --rh-sobre-rampa-3: #0f172a;
-  --rh-sobre-rampa-4: #0f172a;
+  --rh-sobre-rampa-1: #ffffff;   /*  5,2:1 */
+  --rh-sobre-rampa-2: #0f172a;   /*  6,0:1 */
+  --rh-sobre-rampa-3: #0f172a;   /*  9,9:1 */
+  --rh-sobre-rampa-4: #0f172a;   /* 14,6:1 */
   --rh-sobre-nulo: #ffffff;
   --rh-sobre-alarme: #0f172a;
   --rh-sobre-atencao: #0f172a;

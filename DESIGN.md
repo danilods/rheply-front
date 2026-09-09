@@ -18,8 +18,8 @@ colors:
   atencao-texto: "#92400e"
   processo: "#0f766e"
   rampa-1: "#3b82f6"
-  rampa-2: "#2563eb"
-  rampa-3: "#1e40af"
+  rampa-2: "#4f46e5"
+  rampa-3: "#4c1d95"
   rampa-4: "#172554"
   nulo: "#94a3b8"
   foco: "#0ea5a4"
@@ -36,9 +36,9 @@ colors:
   escuro-atencao-texto: "#fbbf24"
   escuro-processo: "#2dd4bf"
   escuro-rampa-1: "#2563eb"
-  escuro-rampa-2: "#3b82f6"
-  escuro-rampa-3: "#60a5fa"
-  escuro-rampa-4: "#bfdbfe"
+  escuro-rampa-2: "#818cf8"
+  escuro-rampa-3: "#93c5fd"
+  escuro-rampa-4: "#dbeafe"
   escuro-nulo: "#64748b"
   escuro-foco: "#2dd4bf"
 typography:
@@ -178,7 +178,7 @@ A camada antiga continua de pé, intacta: os tokens HSL do shadcn (`--background
 
 **Key Characteristics:**
 - Uma família tipográfica em dois desenhos (Inter e Inter Tight), zero pareamento decorativo.
-- Cor por lei fechada: três estados, uma rampa ordinal azul de quatro degraus, um cinza de dado ausente. Nada mais.
+- Cor por lei fechada: três estados, uma rampa ordinal de quatro degraus, um cinza de dado ausente. Nada mais.
 - Separação por fio, nunca por cartão. Raio zero em tudo que é instrumento.
 - Claro e escuro são o mesmo sistema com dois valores; a forma, o espaçamento e a tipografia não mudam entre os dois.
 - Tema claro é o padrão por fato do produto: o quadro é projetado numa sala com a luz acesa.
@@ -190,13 +190,17 @@ Paleta neutra fria (família slate) como base absoluta, com a cor confinada a du
 
 ### Primary
 - **Teal Rheply** (`{colors.marca}`): a cor da marca, herdada do gradiente do logo (`src/components/brand/logo.tsx`, teal → azul). Ela vive hoje em três lugares e só nesses três: `--rh-foco` (anel de foco, cursor de texto e hover do botão forte), o estado `--rh-processo` e o próprio logo. **O teal saiu da rampa de magnitude** e ficou onde uma valência positiva é apropriada: foco é bom, "em processo" é bom. Não é cor de preenchimento de superfície.
-- **Azul Rheply** (`{colors.marca-2}`): a outra ponta do gradiente do logo e a matiz que passou a governar a rampa ordinal inteira. É exatamente o valor de `{colors.rampa-1}` no claro.
+- **Azul Rheply** (`{colors.marca-2}`): a outra ponta do gradiente do logo e a matiz onde a rampa ordinal começa. É exatamente o valor de `{colors.rampa-1}` no claro. A rampa parte dele, mas não permanece nele — ver abaixo.
 
 ### Secondary
 Não existe. Uma segunda cor de acento seria a primeira rachadura na lei; a rampa ordinal ocupa o espaço que um acento secundário ocuparia.
 
 ### Tertiary — a rampa ordinal de magnitude
-Quatro degraus de **azul puro**, sem verde em nenhum deles: do azul médio ao navy no claro (`{colors.rampa-1}` → `{colors.rampa-4}`) e do azul fundo ao azul-gelo no escuro (`{colors.escuro-rampa-1}` → `{colors.escuro-rampa-4}`). A luminância é monotônica dentro de cada tema, com ΔL* ≥ 8 entre vizinhos e ≥ 3:1 de cada degrau contra a sua placa — reverificado programaticamente nos dois temas depois da troca de matiz.
+Quatro degraus **sem verde em nenhum deles**, para não colidir com o teal da marca. No claro a rampa gira 43° de matiz enquanto escurece — azul, índigo, violeta, marinho (`{colors.rampa-1}` → `{colors.rampa-4}`); no escuro permanece na família azul e clareia (`{colors.escuro-rampa-1}` → `{colors.escuro-rampa-4}`).
+
+**Por que a matiz gira no claro e não no escuro.** Uma rampa de matiz única separa os degraus só por luminância, e isso rende menos degraus do que a escala declara: a versão anterior media ΔE 8,6 entre os dois primeiros — dois degraus que ninguém distinguia, ainda mais sob deuteranopia. Girar a matiz acrescenta um segundo canal de distinção e leva o pior par a 11,4 no claro e 12,7 no escuro. No escuro o giro é menor de propósito: a versão colorida (roxo → lilás) media 9,7, pior que a azul, porque sobre fundo escuro quem carrega a separação é a luminância e o giro custa mais do que rende.
+
+A ordem é sempre dada pela luminância, nunca pela matiz — é isso que mantém a rampa legível em cinza e no projetor. Verificado programaticamente nos dois temas: luminância monotônica, ≥ 3:1 do degrau 1 contra a sua placa, ΔE ≥ 11 entre degraus vizinhos sob visão normal, protanopia, deuteranopia e tritanopia, e ΔE ≥ 12,8 de cada degrau contra as cores que coocorrem como preenchimento (alarme, atenção e o cinza de nulo).
 
 **A rampa era teal→navy e passou a ser azul, e a razão é semântica, não estética.** Verde e teal afirmam "bom". Uma barra de volume não pode ter valência: ela mede quanto, não se está certo. Com a rampa em verde, o estoque parado e o não comparecimento apareciam sussurrando que estava tudo bem — o oposto da lei do quadro, que diz que o normal é silencioso e que cor de estado é a única cor que julga. O azul mede sem opinar. O teal recuou para `--rh-marca`, `--rh-foco` e `--rh-processo`, onde a valência positiva é o significado desejado.
 
@@ -222,7 +226,7 @@ O **degrau 2** é o preenchimento default de série única (`.rs-mk`): um gráfi
 Os três estados foram separados sob protanopia, deuteranopia e tritanopia simuladas, com ΔE ≥ 15 entre cada par nos três casos.
 
 ### A tinta que vai por cima
-Cada preenchimento do sistema traz junto a sua tinta companheira: `--rh-sobre-rampa-1..4`, `--rh-sobre-nulo`, `--rh-sobre-alarme`, `--rh-sobre-atencao`, `--rh-sobre-processo`. As tintas da rampa foram **re-derivadas** junto com a troca de matiz: no claro os quatro degraus são escuros o bastante para tinta branca; no escuro a virada acontece entre o degrau 2 e o 3, e os dois degraus claros pedem tinta escura (`#0f172a`). O componente não adivinha nada por luminância em tempo de execução (era assim antes, e `TINTA_SOBRE` em `graficos.tsx` substituiu essa adivinhação por consulta ao token). Adivinhar acertaria num tema e erraria no outro, porque no escuro é o preenchimento claro que pede tinta escura.
+Cada preenchimento do sistema traz junto a sua tinta companheira: `--rh-sobre-rampa-1..4`, `--rh-sobre-nulo`, `--rh-sobre-alarme`, `--rh-sobre-atencao`, `--rh-sobre-processo`. As tintas da rampa foram **re-derivadas** junto com a troca de matiz, e a virada não cai no mesmo lugar nos dois temas: no claro só o degrau 1 é claro o bastante para pedir tinta escura (branco sobre ele dava 3,68:1, o único ponto do sistema abaixo de AA), e os outros três levam branco; no escuro é o contrário, só o degrau 1 leva branco e os outros três pedem tinta escura. O componente não adivinha nada por luminância em tempo de execução (era assim antes, e `TINTA_SOBRE` em `graficos.tsx` substituiu essa adivinhação por consulta ao token). Adivinhar acertaria num tema e erraria no outro, porque no escuro é o preenchimento claro que pede tinta escura.
 
 ### Named Rules
 

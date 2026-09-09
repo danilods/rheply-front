@@ -91,10 +91,21 @@ export function Grafico({
   useEffect(() => {
     const g = instancia.current;
     if (!g) return;
-    /* `true` substitui as opções em vez de mesclar. Sem isso, uma série que
-       some do recorte fica desenhada na tela, porque a mesclagem preserva o
-       índice antigo. */
-    g.setOption(option, true);
+    /*
+     * Substituir os componentes nomeados, e não o gráfico inteiro.
+     *
+     * `notMerge: true` resolvia o defeito certo — uma série que sai do recorte
+     * não pode continuar desenhada — pelo meio errado: joga fora a instância e
+     * monta outra do zero. Sem "de onde" não há "para onde", e a mudança de
+     * filtro virava um piscar em que nada se pode acompanhar.
+     *
+     * `replaceMerge` descarta os componentes velhos e ainda assim reconhece os
+     * que sobreviveram, que é o que permite a barra caminhar da posição antiga
+     * para a nova em vez de reaparecer noutro lugar. Heer e Robertson mediram
+     * esse ganho: a transição animada existe para derrotar a cegueira à
+     * mudança, e é ela que responde "o que o filtro fez com o meu quadro".
+     */
+    g.setOption(option, { replaceMerge: ["series", "xAxis", "yAxis", "dataZoom", "grid"] });
   }, [option]);
 
   useEffect(() => {

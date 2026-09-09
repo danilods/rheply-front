@@ -163,6 +163,26 @@ function corDe(cor: string | undefined, p: Paleta, reserva: string): string {
   return reserva;
 }
 
+/**
+ * O degrau da rampa que corresponde a um valor.
+ *
+ * Num gráfico de barras ordenado, a posição na lista já é ordinal: quem está
+ * no topo tem mais. Pintar todas as barras do mesmo azul desperdiça um canal
+ * que o dado já paga — a magnitude fica só no comprimento, e o quadro inteiro
+ * lê como uma parede de retângulos iguais.
+ *
+ * Codificar a mesma grandeza duas vezes, em comprimento e em luminância, não
+ * inventa informação nenhuma: é redundância, e redundância acelera a leitura
+ * em vez de confundi-la. O que seria desonesto é dar matizes diferentes a
+ * categorias nominais, fingindo agrupamento onde não existe — e é por isso que
+ * o que varia aqui é o degrau da mesma rampa, não a cor.
+ */
+function degrauDe(valor: number, teto: number, p: Paleta): string {
+  if (teto <= 0) return p.rampa[0];
+  const fracao = Math.max(0, Math.min(1, valor / teto));
+  return p.rampa[Math.min(3, Math.floor(fracao * 4))];
+}
+
 /** A tinta que vai por cima de um preenchimento, declarada e não adivinhada. */
 function tintaSobre(preenchimento: string, p: Paleta): string {
   const i = p.rampa.indexOf(preenchimento);
@@ -246,6 +266,10 @@ export function Barras({
   const option = useMemo<EChartsOption>(() => {
     const { largura: wRot, letras } = calha(dados.map((d) => d.k));
     const comZoom = dados.length > LINHAS_SEM_ZOOM;
+    /* A escada mede contra o maior valor presente, não contra o teto do eixo:
+       num recorte onde tudo é pequeno, o maior ainda é o maior, e achatar todas
+       as barras no degrau mais claro esconderia a ordenação. */
+    const tetoRampa = Math.max(...dados.map((d) => d.v), 1);
 
     return {
       animationDuration: 320,
@@ -313,7 +337,8 @@ export function Barras({
               const it = dados[a.dataIndex];
               // Destaque é estado anormal, e estado anormal tem cor própria.
               if (destaque?.has(it.k)) return p.alarme;
-              return corDe(it.cor, p, p.rampa[1]);
+              // Cor declarada pela página manda; sem ela, quem escolhe é o valor.
+              return it.cor ? corDe(it.cor, p, p.rampa[1]) : degrauDe(it.v, tetoRampa, p);
             },
           },
           emphasis: { itemStyle: { color: p.foco } },
@@ -811,7 +836,12 @@ export function Funil({ nos }: { nos: NoFunil[] }) {
           sort: "none",
           gap: 3,
           data: nos.map((n, i) => {
-            const degrau = Math.min(3, Math.floor((i / Math.max(nos.length - 1, 1)) * 3));
+            /* Arredondar, e não truncar: truncando, cinco etapas recebem os
+               degraus 0,0,1,2,3 e as duas primeiras — que são os dois maiores
+               segmentos do funil — saem da mesma cor. Arredondando, a etapa
+               repetida cai no meio, onde os trapézios são menores e a
+               diferença importa menos. */
+            const degrau = Math.min(3, Math.round((i / Math.max(nos.length - 1, 1)) * 3));
             return {
               name: n.k,
               value: n.v,
